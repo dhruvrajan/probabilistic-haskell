@@ -26,6 +26,8 @@ executable naive-bayes-exe
   build-depends:       base
                      , parsec
                      , csv
+                     , containers
+                     , probability
                      , naive-bayes
   default-language:    Haskell2010
 
