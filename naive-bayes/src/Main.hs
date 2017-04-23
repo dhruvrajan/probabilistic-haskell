@@ -80,7 +80,11 @@ processCSV x = True
 
 
 main :: IO ()
-main = do x1 <- parseCSVFromFile "data/csv_test.csv"
-          let result = (either (\x ->  False) (processCSV))  x1
-          putStrLn (if result then "True" else "False")
+main = do raw <- getCSVData
+          let numeric = getNumericData raw
+          let classified = getClassVecs numeric
+          let dataSummary = summarizeData numeric
+          let classSummary = summarizeByClass numeric
+          
+          putStrLn "finished"
 
