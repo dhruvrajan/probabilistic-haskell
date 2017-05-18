@@ -48,11 +48,17 @@ which maps a vector to a category: \textit{clf} $:: \chi \rightarrow C$ .
 The insight is that learning this is equivalent to learning
 the conditional probability $P(C | X)$ for arbitrary $C$, $X$.
 
+What can be approximated:
+\begin{align}
+  P(C_k) &\\
+  P(X_i | C_k) &\\
+  P(X_1, X_2, .. X_n | C_k) &= \Pi^n_{i =1} P(X_i | C_k)  
+\end{align}
+
 \begin{align}
   \chi &= X_1, X_2, X_3 ... X_n \\
-  P(C | \c
-  hi) &= P (C | X_1, X_2, ... X_n) \\
-  &= \frac{P(X_1, X_2, ... X_n | C) \cdot P(C)}{P(X_1, X_2, ... X_n)}
+  P(C_k | \chi) &= P (C_k | X_1, X_2, ... X_n) \\
+  &= \frac{P(X_1, X_2, ... X_n | C_k) \cdot P(C)}{P(X_1, X_2, ... X_n)}
 \end{align}
 
 

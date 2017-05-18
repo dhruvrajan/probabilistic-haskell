@@ -5,6 +5,7 @@ import Text.CSV
 import Data.Either
 import Data.Maybe
 import qualified Data.Map as Map
+import qualified Data.List as List
 
 
 -- Statistics Helper Functions
@@ -74,10 +75,28 @@ summarizeByClass xs = result
     byClass = separateByClass (getClassVecs xs) []
     result = map (\(x1,x2) -> (x1, summarizeData x2)) byClass
 
-    
+classProbability :: (Int, [(Float, Float)]) -> [Float] -> Float
+classProbability (x, []) vec = 1
+classProbability (x, ((mu, st):ss)) (v:vs) =  (calcProb v mu st) * classProbability (x, ss) vs
+
+calculateClassProbabilities :: [(Int, [(Float, Float)])] -> [Float] -> [(Int, Float)]
+calculateClassProbabilities [] _ = []
+calculateClassProbabilities ((c, cs):xs) vec = (c, classProbability (c, cs) vec) :  calculateClassProbabilities xs vec
+
+
+predict :: [(Int, [(Float, Float)])] -> [Float] -> Int
+predict summ vec = result
+  where
+    classProbs = calculateClassProbabilities summ vec
+    sorted = List.sortOn (\(x, y) -> -y) classProbs
+    (result, _) = head sorted
+
+getPredictions :: [(Int, [(Float, Float)])] -> [[Float]] -> [Int]
+getPredictions _ [] = []
+getPredictions  summaries (t:ts) = predict summaries t : getPredictions summaries ts
+                                               
 processCSV :: CSV -> Bool
 processCSV x = True
-
 
 main :: IO ()
 main = do raw <- getCSVData
@@ -88,3 +107,6 @@ main = do raw <- getCSVData
           
           putStrLn "finished"
 
+-- let summaries = [(0,[(1,0.5)]), (1,[(20,5.0)])]
+-- let tests = [[1.1, 1], [1.91, 1]]
+-- getPredictions summaries tests
