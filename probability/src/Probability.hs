@@ -1,6 +1,7 @@
-module Lib
-    ( someFunc
-    ) where
+module Probability
+  (
+    someFunc
+  ) where
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"
