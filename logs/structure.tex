@@ -1,0 +1,40 @@
+\documentclass[12pt]{article}
+\usepackage{fullpage}
+\usepackage{verbatim}
+
+\begin{document}
+
+\title{Planning Document Structure, and Code Layout}
+\author{Dhruv Rajan}
+\date{\today}
+\maketitle
+
+\section{Plan}
+
+\begin{verbatim}
+src
+  Distribution.hs (general distribution funcs)
+  Distributions   (dir for all specific distributions)
+    -- parameterized type constructors and
+       instance declarations for various type classes
+    Normal.hs
+    Binomial.hs
+\end{verbatim}
+
+The notion of ``distributions`` is represented by a typeclass,
+defining functions such as pdf, cdf, convolve, condition, sample,
+log-pdf, etc. \\
+
+Additional type classes will be added for collections of operations.
+For example, continuous distribution-specific operations, or
+Discrete-specific operations. \\
+
+Each distribution is a parameterized type, for example: \\
+\begin{verbatim}newtype Normal = Normal {mu :: Double, sigma :: Double} \end{verbatim}\\
+These type declarations will be present in the files under the
+Distributions directory. In these files, there will be instance
+declarations to make distributions members of certain typeclasses.
+
+
+
+\end{document}
