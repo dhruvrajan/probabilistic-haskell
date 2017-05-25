@@ -1,6 +1,6 @@
 module Main where
 
-import Lib
+import Probability
 
 main :: IO ()
 main = someFunc
