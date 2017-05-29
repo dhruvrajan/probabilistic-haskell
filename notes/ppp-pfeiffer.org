@@ -1,0 +1,13 @@
+#+TITLE: Notes for "Practical Probabilistic Programming" by Pfeiffer
+#+AUTHOR: Dhruv Rajan
+
+* Ch. 1: Probabilistic Programming in a Nutshell
+*** What is Probabilistic Programming?
+    - Estimating probabilities allows you to make judgement calls,
+      based on /knowledge/ and /logic/
+    - Probabilistic Programming enables knowledge and knowledge to be
+      specified so that questions may be answered
+    - 
+
+* Ch. 4: Probabilistic Models and Probabilistic Programs
+*** 

@@ -1,0 +1,35 @@
+\documentclass[12pt]{article}
+
+
+
+\begin{document}
+
+\title{Monads}
+\author{Dhruv Rajan}
+\date{\today}
+\maketitle
+
+\section{Background}
+
+Functors are things that may be mapped over, in order to perform
+functions on values within certain contexts. In general, operate on a
+datatype \texttt{f a} with a function \texttt{a -> b} to produce a
+datatype \texttt{f b}. This abstraction is encoded in the \texttt{fmap}
+function: \texttt{(Functor f) => (a -> b) -> f a -> f b} \\
+
+Applicatives are an improvement upon Functors, which allow the mapping
+function to itself be wrapped inside a context. Thus, the function
+\texttt{<*>} operates in the same way as \texttt{fmap}, besides this
+detail, and has type \texttt{(Applicative f) => f (a -> b) -> f a -> f b}. \\
+
+Monads can be considered an extension of Applicative Functors. While
+applicatives are concerned with applying wrapped functions to wrapped
+values, Monads are concerned with applying a function which /takes/ an
+unwrapped value and returns a wrapped value to a wrapped value. That
+is, the ability to apply a function \texttt{>>= :: (Monad m) => m a ->
+  (a -> m b) -> m b} \\
+
+\section{The Writer Monad}
+
+
+\end{document}
