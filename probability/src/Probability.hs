@@ -11,15 +11,18 @@ module Probability
 -- Random variables can be Discrete, Continuous
 data ProbDist a = ProbDist { }
 
-newtype Normal = Normal mu sigma
+data Normal = Normal Double Double
+
+class Probability where
+  by :: Int -> Int
+
 
 
 class (Num t) => Discrete t where
   mode :: ProbDist t -> Float
   
 
-class (Num t) => Continuous t where
-  mode :: ProbDist t -> Float
+
 
 
 someFunc :: IO ()
