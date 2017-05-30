@@ -29,6 +29,7 @@ executable naive-bayes-exe
                      , containers
                      , probability
                      , naive-bayes
+                     , statistics
   default-language:    Haskell2010
 
 test-suite naive-bayes-test
