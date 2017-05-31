@@ -6,6 +6,8 @@ import qualified Statistics.Matrix as Mat
 import Data.Either
 import Data.Maybe
 
+data NaiveBayes
+
 main :: IO ((Mat.Matrix, Mat.Vector))
 main = do raw <- parseCSVFromFile "data/diabetes.csv"
           let csvRaw = head (rights [raw])
