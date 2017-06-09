@@ -11,7 +11,6 @@ fromDistribution d = Atomic {distribution = d, observed = Nothing}
 flip :: Double -> Element Bool
 flip p = fromDistribution $ \x  -> case x of True ->  p
                                              False -> 1 - p
-
          
 observe :: Element a -> a -> Element a
 observe e value = e { observed = Just value }
@@ -26,9 +25,4 @@ probability Atomic { distribution = d, observed = Just val} x
 probability If {tst = tst, thn = thn, els = els} val =
   (probability tst True) * (probability thn val) +
   (probability tst False) * (probability els val)
-
-
-dist :: Distribution Bool
-dist True = 0.2
-dist False = 0.8
 
