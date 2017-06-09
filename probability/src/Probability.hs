@@ -1,29 +1,24 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
-module Probability
-  (
-    someFunc,
-    ProbDist    
-  ) where
+module Probability where
 
--- Generic Probability Distribution
--- Maps values to probabilities.
--- Need to create Random Variables
--- Random variables can be Discrete, Continuous
-data ProbDist a = ProbDist { }
+type Distribution a = a -> Double
 
-data Normal = Normal Double Double
+data Element a = Element { distribution :: Distribution a,
+                           observed :: Maybe a
+                         }
 
-class Probability where
-  by :: Int -> Int
+observe :: Element a -> a -> Element a
+observe e value = e { observed = Just value }
 
+unobserve :: Element a -> Element a
+unobserve e = e { observed = Nothing }
 
-
-class (Num t) => Discrete t where
-  mode :: ProbDist t -> Float
-  
+probability :: Eq a => Element a -> a -> Double
+probability Element { distribution = d, observed = Nothing } = d
+probability Element { distribution = d, observed = Just val}
+  = \x -> if (x == val) then 1.0 else 0.0
 
 
+dist :: Distribution Bool
+dist True = 0.2
+dist False = 0.8
 
-
-someFunc :: IO ()
-someFunc = putStrLn "someFunc"
