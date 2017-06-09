@@ -24,7 +24,8 @@ executable probability-exe
   hs-source-dirs:      app
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       probability
+  build-depends:       base
+                     , probability
   default-language:    Haskell2010
 
 test-suite probability-test
