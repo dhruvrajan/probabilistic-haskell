@@ -1,7 +1,8 @@
 #### joe made this: http://goel.io/joe
 
 cook
-
+*.idea
+*.iml
 #####=== Haskell ===#####
 
 dist
