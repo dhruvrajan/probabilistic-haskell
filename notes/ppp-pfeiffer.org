@@ -7,7 +7,102 @@
       based on /knowledge/ and /logic/
     - Probabilistic Programming enables knowledge and knowledge to be
       specified so that questions may be answered
-    - 
+    - Probabilistic Reasoning
+      - probabilistic model expresses knowledge, while an inference
+        algorithm encodes the logic
+    - A probabilistic language provides a *turing complete*
+      representation for probabilistic reasoning
+    - *simulation languages* are able to represent the execution of
+      complex processes with randomness
+      - probabilistic programs are simulations that may be analyzed asdkf lsdkf asldkfj
+* Ch. 2: A quick Figaro Tutorial
+*** GOAL: See what are the useful language structures
+*** Workflow
+    - Probabilistic Reasoning System:
+      - (evidence, queries, answers) -> (probabilistic model, inference algorithm)
+    - evidence: specific information about a situation
+    - queries: express the things that will help you make a decision
+    - answers to queries: probabilities of different outcomes
+    - probabilistic model: expresses general knowledge about a situation
+      - set of data structures called /elements/
+	- an element is a variable in the situation that can take on a
+          set of values
+    - inference algorithm: uses the model to answer queries, given evidence
+
+*** 
 
 * Ch. 4: Probabilistic Models and Probabilistic Programs
-*** 
+  - /probabilistic models/ are a method of encoding general knowledge
+    of an uncertain situation
+*** What is 'general knowledge'?
+    - A distribution over possible worlds (states of affairs)
+      - Each situation is considered possible before witnessing
+        nullifying evidence
+      - Possibilities, and tendencies towards specific possibilities
+      - Evidence is not part of a probabilistic model
+      - /probabilistic reasoning/ uses a model, which encodes general
+        knowledge, and applies it to evidene about a specific
+        situation
+***** What's likely?
+      - assign a number to each possible world (probability)
+	- ^ this is a probability distribution
+      - /probabilistic model/ is a formal representation of a
+        probability distribution over possible worlds
+***** What happens when you witness evidence?
+      - /prior distribution/ is the distribution of worlds before
+	seeing evidence
+      - /posterior distribution/ is the distribution of worlds after
+	seeing evidence
+*** Using a probabilistic model to answer queries
+***** Conditioning on Evidence -> Posterior Distribution
+******* Process
+      	1. Eliminate all possible words inconsistent with evidence
+      	2. /normalizing:/ Adjust probabilities of remaining worlds
+           upward so that they sum to 1 again
+	   - normalizing factor <- sum probabilities of consistent
+             worlds (since inconsistent worlds are not counted, this
+             sum is < 1)
+	   - divide the pobailities of each of the consistent worlds
+             by the normalizing factor (ensures that the new sum is
+             = 1) to obtain the posterior distribution
+	   - In general, DO NOT condition on impossible evidence, as
+             it will produce unpredictable results
+***** Using probabilistic Inference
+      - the goal of /inference/ is to compute the posterior
+        probability distribution given evidence
+      - generally, inference algorithms are based on
+	1. chain rule
+	2. total probability rule
+	3. Bayes' rule
+      - Inference algorithms can be /exact/ or /approximate/.
+	- /exact/: posterior probabilities which are computed follow
+          mathematically from the three rules of inference
+	- /approximate/: provide close to the right answer, but not
+          always with guarantees
+***** Forming probabilistic models
+      - 4 ingredients:
+	1. variables involved
+	   - variables have /types/
+	     - continuous vs. discrete variables
+	     - enumerations (categorical)
+	     - range: set of values considered possible for the variable
+	       to hold
+	2. dependencies between variables
+	   - characterize the way variables are related to each other
+	   - dependence vs. independence relationships
+	   - conditional independence -> independence given some
+             evidence
+	   - Dependencies can be modeled as a network, in which there
+             is an arrow from a parent to the child if the value of
+             the parent influences the value of the child
+	3. functional forms of the dependencies (model specific
+           situations as coin tosses, etc.)
+	   - every variable is represented by a probability
+             distribution (Normal, Binomial, etc.)
+	   - Conditional probability distributions (CPD)
+	     - Figaro
+	       - CPD constructs conditional distributions
+	       - 
+	4. numerical parameters of these forms
+
+
