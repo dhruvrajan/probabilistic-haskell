@@ -1,0 +1,67 @@
+\documentclass[12pt]{article}
+
+
+\newcommand{\s}[1]{\texttt{#1}}
+\renewcommand{\it}[1]{\textit{#1}}
+\begin{document}
+
+\title{Plan for Language Specification}
+\author{Dhruv Rajan}
+\date{\today}
+\maketitle
+
+\section{Figaro's Representation}
+\subsection{Primitive Types}
+In Figaro, every data structure is an \it{element}. Every element
+holds a \textit{value}, with some associated \textit{value type}. Thus, all
+elements are of the form \s{Element[type]}. Distinctions are made between four categories of elements:
+
+\begin{enumerate}
+\item \it{atomic} self contained, does not depend on another element (\s{Normal})
+\item \it{compound} build out of other elements (\s{If (...), Apply (...)})
+\item \it{discrete} element whose value type is discrete (\s{Poisson})
+\item \it{continuous} element whose value type is continuous (\s{Gamma})
+\end{enumerate}
+
+\subsection{Observing Variables}
+Elements are defined by distributions of their possible values. A
+simple \s{Normal} element can only hold values on the interval
+$[-1, 1]$, with corresponding probabilities. Thus, each element may be
+considered a random variable, on its given distribution. Figaro
+provides methodology for symbolic manipulation of these random
+variables, allowing dependent variables (compound elements) to be
+utilized. \\
+
+No element is given an immediate value until it is observed. The
+\s{observe()} method alters only the element on which it is called, so
+that when an inference algorithm (such as
+\s{VariableElimination.probability}) is run on that element, or any
+variable in the same dependency network, it can calculate
+the relevant conditional probabilities.
+
+\subsection{Creating Compound Elements}
+Atomic elements can be combined to form compound elements. The
+simplest method for combining them is the \s{If} construct, which
+allows for slightly complex conditioning on distributions
+
+\subsubsection{If}
+The type signature for \s{If} is as follows:
+
+\begin{center}
+  \s{If (test: Element[Boolean], \\ then: Element[T], \\ else:
+    Element[T])\\ => cond: Element[T]}
+\end{center}
+
+\subsubsection{Apply}
+The type signature for \s{Apply} is as follows:
+\begin{center}
+  \s{Apply (e1: Element[T], \\ fn: T -> U)}
+\end{center}
+
+\subsubsection{Chain}
+The type signature for \s{Chain} is as follows:
+\begin{center}
+  \s{Chain ()}
+\end{center}
+
+\end{document}
