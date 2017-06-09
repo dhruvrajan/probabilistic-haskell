@@ -19,16 +19,18 @@ main = do
   let sunnyTomorrow = P.If sunnyToday (P.flip 0.8) (P.flip 0.05)
   let greetingTomorrow = P.If sunnyTomorrow (P.fromDistribution select1)
                          (P.fromDistribution select2)
-
+  -- Predict
   let prediction = P.probability greetingToday1 "Hello, world!"
   putStrLn("Today's greeting is \"Hello, world!\" " ++
            "with probability " ++ (show prediction) ++ ".")
 
+  -- Infer
   let greetingToday2 = P.observe greetingToday1 "Hello, world!"
   let inference = P.probability sunnyToday True
   putStrLn ("If today's greeting is \"Hello, world!\", today's " ++
           "weather is sunny with probability " ++ (show inference) ++ ".")
 
+  -- Learn And Predict
   let greetingToday3 = P.observe greetingToday2 "Hello, world!"
   let result = P.probability greetingTomorrow "Hello, world!"
   putStrLn("If today's greeting is\"Hello, world!\", " ++
