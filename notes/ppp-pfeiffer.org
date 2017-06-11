@@ -105,4 +105,63 @@
 	       - 
 	4. numerical parameters of these forms
 
+* Ch. 5: Modeling Dependencies with Bayesian and Markov Networks
+*** Ingredients of probabilistic model (review)
+    1) variables
+    2) dependencies
+    3) functional forms
+    4) numerical parameters
+*** Background
+    - Dependencies capture relationships between variables
+    - Two kinds (direct, indirect)
+      - Direct dependencies express asymmetric relationships (Bayesian Network)
+      - Indirect dependencies, which turn into symmetric relationships (Markov Network)
+*** Modeling Dependencies
+    - variables are /dependent/ if knowledge of one variable provides
+      info. about the other. Otherwise, they are /independent/
+    - a /dependency/ models a relation between two variables.
+      1. A /directed dependency/ indicates a cause effect relationship
+         between two variables
+      2. An /undirected dependency/ models a relationship where there
+         is no obvious direction of influence
+    - *Note* the direction of a dependency isn't necessarily the
+      direction of reasoning
+      - Rather, it should express the generative process, which
+        follows the cause-effect direction
+***** Kinds of cause-effect relationships
+      1. What happens first to what happens next
+	 - Most obvious relationship; a temporal relationship between
+           two events. The occurrence of one event causes the
+           occurrence of the other at a later time.
+      2. Cause-Effect of States
+	 - two variables representing different aspects of the state
+           of some system at a given point in time
+	 - Knowing that one is true leads you to know that the other
+           is true, at the same point in time.
+	 - /not/ a temporal relationship.
+      3. True Value to Measurement
+	 - one variable is a /measurement/ of the value of another
+           variable
+	   - the true value /causes/ the measurement
+	 - Typically these are produced by sensors.
+      4. Parameter to Variable which Uses the Parameters
+	 - Coin flips are parameterized by their bias. Thus, the bias
+           can be said to be "generated before" the toss. When there
+           are many tosses of the same coin, they are all generated
+           after the bias
+      5. Part to Whole
+	 - Generally, properties of a part of an object can lead to
+           properties of the entire object
+	 - Properties of the whole can determine properties of a part
+	 - Bi-directional, so it is generally ambiguous, and difficult
+           to decide on the correct direction
+      6. Specific to General
+	 - if a user experiences problems with a specific printer, he
+           is likely to experience the same problems with printers in
+           general
+	 - Individual properties are influenced by more general
+           properties (specific mechanisms <- model of printer)
+      7. Concrete/Detailed to Abstract/Summary
+	 - Process of generating letter grades from raw scores
+
 
