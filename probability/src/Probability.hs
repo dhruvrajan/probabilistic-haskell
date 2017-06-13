@@ -3,15 +3,14 @@ module Probability where
 type Distribution a = a -> Double
 
 data Element a = Atomic { distribution :: Distribution a, observed :: Maybe a}
-  | If {tst :: Element Bool, thn :: Element a, els :: Element a}
+  | If {tst :: Element Bool, thn :: Element a, els :: Element a, observed :: Maybe a}
 
 fromDistribution :: Distribution a -> Element a
 fromDistribution d = Atomic {distribution = d, observed = Nothing}
 
 flip :: Double -> Element Bool
 flip p = fromDistribution $ \x  -> case x of True ->  p
-                                             False -> 1 - p
-         
+                                             False -> 1 - p         
 observe :: Element a -> a -> Element a
 observe e value = e { observed = Just value }
 
