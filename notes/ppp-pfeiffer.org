@@ -128,7 +128,7 @@
       direction of reasoning
       - Rather, it should express the generative process, which
         follows the cause-effect direction
-***** Kinds of cause-effect relationships
+***** Kinds of cause-effect relationships (Asymmetric relationships)
       1. What happens first to what happens next
 	 - Most obvious relationship; a temporal relationship between
            two events. The occurrence of one event causes the
@@ -163,5 +163,14 @@
            properties (specific mechanisms <- model of printer)
       7. Concrete/Detailed to Abstract/Summary
 	 - Process of generating letter grades from raw scores
-
-
+***** Directed Dependencies in Figaro
+      - Generally, use =Chain= of some sort as the functional form
+	- takes a parent element =Element[T]= and chain function: =T -> Element[U]=
+	- Chain function specifies a probability distribution over the
+          child for each value of the parent
+	  - Conditional distribution: P(Child = c | Parent = p)
+	  - Pg. 135 shows uses of Chain, If, CPD, and RichCPD to achieve the result
+***** Symmetric Relationships
+      - Two effects of the same cause, where the cause isn't modeled explicitly
+      - Two causes of the same effect (/induced dependency/)
+******* Constraints and Conditions
