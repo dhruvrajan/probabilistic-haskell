@@ -1,0 +1,211 @@
+% Created 2017-06-16 Fri 09:49
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\tolerance=1000
+\author{Dhruv Rajan}
+\date{\today}
+\title{plan}
+\hypersetup{
+  pdfkeywords={},
+  pdfsubject={},
+  pdfcreator={Emacs 25.1.1 (Org mode 8.2.10)}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Primitive Constructs and Types}
+\label{sec-1}
+\subsection{Primitive Types (Figaro)}
+\label{sec-1-1}
+In Figaro, every data structure is an \emph{element}. Every element
+holds a \emph{value}, with some associated \emph{value type}. Thus, all
+elements are of the form \texttt{Element[type]}. Distinctions are made
+between four categories of elements:
+\begin{enumerate}
+\item \emph{atomic} self contained, does not depend on another element (\texttt{Normal})
+\item \emph{compound} build out of other elements (\texttt{If (...), Apply (...)})
+\item \emph{discrete} element whose value type is discrete (\texttt{Poisson})
+\item \emph{continuous} element whose value type is continuous (\texttt{Gamma})
+\end{enumerate}
+\subsection{Observing Variables (Figaro)}
+\label{sec-1-2}
+Elements are defined by distributions of their possible values. A
+simple \texttt{Normal} element can only hold values on the interval [-1,
+1], with corresponding probabilities. Thus, each element may be
+considered a random variable, on its given distribution. Figaro
+provides methodology for symbolic manipulation of these random
+variables, allowing dependent variables (compound elements) to be
+utilized.
+
+No element is given an immediate value until it is observed. The
+\texttt{observe()} method alters only the element on which it is called, so
+that when an inference algorithm (such as
+\texttt{VariableElimination.probability}) is run on that element, or any
+variable in the same dependency network, it can calculate the relevant
+conditional probabilities.
+\subsection{Creating Compound Elements (Figaro)}
+\label{sec-1-3}
+Atomic elements can be combined to form compound elements. The
+simplest method for combining them is the \texttt{If} construct, which
+allows for slightly complex conditioning on distributions. There
+are also the \texttt{Apply} and \texttt{Chain}
+\subsection{{\bfseries\sffamily TODO} Representing Distributions}
+\label{sec-1-4}
+I've tried to take the core ideas in from the Figaro language, and express
+them in Haskell. This includes, (1) Representation of Elements / Random Variables,
+(2) Ability to observe Random Variables (3) Ability to use inference to infer
+probability distributions, given observations.
+
+I've tried to separate the complexity of combining random variables from
+the representation of distributions. Thus, a distribution is just a function,
+mapping some values of some type $a$ to probabilities (\s{Double}). I have yet
+to integrate the standard library of distributions from the statistics library.
+\begin{center}
+\texttt{type Distribution a = a -> Double}
+\end{center}
+
+\subsection{{\bfseries\sffamily TODO} Representing Atomic Elements}
+\label{sec-1-5}
+There is an Element type for representing the structure which correspond
+to Figaro elements. Atomic elements have two attributes---one for the distribution
+on which their values are drawn, and one to keep track of the element's observed
+values.
+
+\begin{center}
+\texttt{data Element a = Atomic \{distribution :: Distribution a, observed :: Maybe a\}}
+\end{center}
+
+Thus, observations can be performed on atomic elements simply by
+changing this attribute.
+
+\subsection{{\bfseries\sffamily TODO} Creating Compound Elements}
+\label{sec-1-6}
+The \texttt{Element} datatype has separate recursive type constructors for creating
+compound elements from other elements. \texttt{If}, for example, creates an Element
+from three existing elements. \texttt{Apply} and \texttt{Chain} have yet to be implemented.
+
+\subsection{{\bfseries\sffamily TODO} Simple Inference}
+\label{sec-1-7}
+The \texttt{probability} function contains simple inference logic. Since
+compound elements are allowed, every element can be considered part of
+a dependency tree. This function crawls down the tree recursively, calculating
+the probabilities at each required step. The next steps will include looking
+into more sophisticated inference algorithms.
+
+\section{Modeling Dependencies Between Variables}
+\label{sec-2}
+\subsection{Types of Dependencies (Figaro)}
+\label{sec-2-1}
+
+\emph{Directed} and \emph{Undirected} dependencies exist between
+variables. Directed dependencies imply a clear direction; or,
+cause-and-effect relationship between two variables. Undirected
+dependencies represent correlations or observed conditions. This
+can occur, for example, between two variables that are influenced
+by the same "confounding" variable.
+
+Bayesian Networks can be used to model directed dependencies,
+using conditional probability distributions. Markov Networks can
+be used to model undirected dependencies.
+
+\subsection{Modeling Bayesian Networks}
+\label{sec-2-2}
+
+A Bayesian Network is a DAG where each node is annotated
+with probability information, under the following specification.
+
+\begin{enumerate}
+\item A set of random variables makes up tohe nodes of the network. Variables
+may be discrete or continuous.
+\item A set of directed links or arrows connects pairs of nodes. If there is
+an Arrow from node $X$ to node $Y$, $X$ is said to be a parent of $Y$
+\item Each node $X_i$ has a conditional probability distribution
+$P(X_i | Parents (X_i))$ which quantifies the effect of the
+parents on the node
+\item The graph has no cycles (it is a DAG)
+\end{enumerate}
+
+Such a network provides a concise representation of a full joint
+distribution. Each node is conditionally dependent on its parents,
+and thus stores some form of a CDT (Conditional Probability Table)
+
+\subsubsection{{\bfseries\sffamily TODO} Structure of Conditional Probability Table}
+\label{sec-2-2-1}
+This will be a new Haskell datatype, perhaps just something like \texttt{[Entry]}
+Where an entry has multiple fields.
+
+\begin{center}
+\texttt{data Entry = -{}- To be defined}
+\texttt{data CDT = [Entry]}
+\end{center}
+
+Russel \& Norvig's book explains how to use noisy logical
+relationships (noisy-OR) to reduce the space complexity of the tables
+from $O(2^k)$ to $O(k)$. 
+
+\subsubsection{{\bfseries\sffamily TODO} Representing the Network}
+\label{sec-2-2-2}
+The network is a graph, so it should be a collection of Nodes
+(call it \texttt{[Node]} for now, but much smarter can be done). Each
+node will contain a \texttt{CDT} and two lists of nodes: one for
+parents, and one for children.
+\begin{center}
+\texttt{data Network = [Node]}
+\texttt{data Node = Node \{getCDT :: CDT, getParents :: [Node], getChildren :: [Node]\}}
+\end{center}
+
+This structure will \emph{definitely} change as I look into how to
+build the table by successively adding nodes, since at each step
+many of the \texttt{CDT} entries have to be changed. 
+
+Alternatively, could look into using a graph library like FGL,
+since support for topological algorithms and info will help a
+lot. For example, determining whether two variables \texttt{x} and \texttt{y}
+are conditionally independent of \texttt{z}, or finding all variables
+which are conditionally independent of \texttt{z}, etc.
+
+\subsubsection{{\bfseries\sffamily TODO} Supporting a Network with Both Discrete and Continuous RVs}
+\label{sec-2-2-3}
+Techniques for this are explained in Russel \& Norvig
+
+\subsection{{\bfseries\sffamily TODO} Modeling Markov Networks}
+\label{sec-2-3}
+Look at Pfeiffer's book, do more research.
+
+\subsection{{\bfseries\sffamily TODO} Programming with External State}
+\label{sec-2-4}
+In Figaro, the bayesian network is modeled as global state, which 
+is automatically changed when new variables "elements" are created,
+and queried when inference algorithms are run. This concept is more
+genral than just Figaro's representation: it begs the question of
+how to program in Haskell with random variables while updating
+the external network state properly. It seems that this is a good
+fit for the State and ST monads.
+
+The current \texttt{Element} datatype can become an instance of Monad,
+since the combinator function will just create a new conditionally
+dependent distribution (similar to Figaro's Chain function). Then,
+all computations with elements can be performed within the State monad,
+and the Bayesian Network's state can be modified accordingly.
+
+\subsection{{\bfseries\sffamily TODO} Structure of Inference Algorithms}
+\label{sec-2-5}
+Any inference algorithm should be just a series of (perhaps complex) computations
+inside the state monad.
+% Emacs 25.1.1 (Org mode 8.2.10)
+\end{document}
