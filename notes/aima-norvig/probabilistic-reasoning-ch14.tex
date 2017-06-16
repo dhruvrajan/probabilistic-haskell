@@ -1,0 +1,44 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath}
+\begin{document}
+
+\title{Probabilistic Reasoning -- Chapter 14.}
+\author{Dhruv Rajan}
+\date{\today}
+\maketitle
+
+\textit{Independence} and \textit{conditional independence} relationships are very
+powerful for modeling our world. \textbf{Bayesian Networks} introduce a
+systematic way of representing these relationships.
+
+\section{Representing Knowledge in an Uncertain Domain}
+Full joint probability distributions can answer any question about the
+domain, however, they become intractable as the number of variables
+grows. \textbf{Bayesian Networks} represent the same dependencies among variables,
+and give a concise specification of \textit{any} full joint probability distribution.
+
+A Bayesian Network is a DAG where each node is anntated with probability information,
+under the following specification:
+\begin{enumerate}
+\item A set of random variables makes up the nodes of the
+  network. Variables may be discrete or continuous
+\item A set of directed links or arrows connects pairs of nodes. If
+  there is an arrow from node $X$ to node $Y$, $X$ is said to be a
+  parent of Y.
+\item Each Node $X_i$ has a conditional probability distribution
+  $P(X_i | Parents(X_i))$ which quantifies the effect of the parents
+  on the node
+\item The graph has no cycles (it is a DAG)
+\end{enumerate}
+
+\section{The Semantics of Bayesian Networks}
+\subsection{Bayes' nets as Representations of a Full Joint Distribution}
+A generic query to a full joint distribution (FJD) is the probability
+of a conjunction of assignments to each variable:
+$P(X_1 = x_1 \land \dots \land X_n = x_n)$. The following formula can be used.
+\begin{align*}
+  P(x_1, \dots x_n) = \prod_{i = 1}^{n} P(x_i | parents(X_i))
+\end{align*}
+So the Bayesian network can answer any query ,simply by summing the
+relevant joing CPDs for each node.
+\end{document}

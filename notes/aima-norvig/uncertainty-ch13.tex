@@ -1,0 +1,59 @@
+\documentclass[12pt]{article}
+\begin{document}
+
+\title{Chapter 13---Uncertainty}
+\author{Dhruv Rajan}
+\date{\today}
+\maketitle
+
+\section{Acting Under Uncertainty}
+
+Logical agents act under \textit{undcertainty} for they do not possess
+the full truth about their environments. Agents act to maximize
+\textit{performance measures}, and must construct/choose rules
+accordingly. A \textit{rational decision}, thus, depends on the
+relative importance of various goals, and the likelihood and degree to
+which they will be achieved.
+
+\subsection{Encoding Uncertain Knowledge}
+
+Knowledge is often expressed using rules and propositions from
+\textit{first order logic}. Thus, we can express generalizations and
+instantiations as universal truths. These are, effectively, causal
+relationships. When knowledge is uncertain, it is impossible to
+exhaustively enumerate the set of rules, since infinite causes can be
+attributed to any effect, and vice-versa (this is the problem of
+\textbf{laziness}). There is also the problem of
+\textbf{ignorance}---we may not know all the rules anyway, or have any
+way of being certain about them. Probability provides a way of
+summarizing the uncertainty which comes from our laziness and
+ignorance, allowing us to express a \textbf{degree of belief} in the
+accuracy / completeness of our rule set. It also allows us to update
+our rule set (set of beliefs about the world) by observing evidence, transforming \textit{prior} notions to \textit{posterior} notions.
+
+\section{Probability Notation}
+
+The basic element of probabilistic statements is the \textbf{random
+  variable}. It refers to a ``part'' of the world whose ``status'' is
+initially unknown. A random variable is restricted to a domain of
+possible values: There are \textbf{Boolean, Discrete, and Continuous}
+random variables.
+
+\subsection{Atomic Events}
+An \textit{atomic event} is a complete specification of the world of
+which the agent is uncertain. The world is modeled by a set of random
+variables, and thus the \textit{atomic event} is an assignment of
+values to this entire set.
+\begin{itemize}
+\item atomic events must be mutually exclusive
+\item The set of all possible atomic events must be exhaustive
+\item Any particular atomic event entails the truth value of
+  \textit{every} proposition
+\item A proposition is a disjunction of all atomic events which entail
+  the proposition
+\end{itemize}
+
+\subsection{Prior Probability}
+The \textit{prior probability} of a proposition is the degree of
+belief that it will be true, in the absence of any other information.
+\end{document}
