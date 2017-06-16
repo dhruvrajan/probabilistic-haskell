@@ -6,7 +6,7 @@ homepage:            https://github.com/githubuser/probability#readme
 license:             BSD3
 license-file:        LICENSE
 author:              Dhruv Rajan
-maintainer:          example@example.com
+maintainer:          dhruv@krishnaprem.com
 copyright:           2017 Dhruv Rajan
 category:            Web
 build-type:          Simple
@@ -26,6 +26,7 @@ executable probability-exe
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , probability
+                     , mtl
   default-language:    Haskell2010
 
 test-suite probability-test
