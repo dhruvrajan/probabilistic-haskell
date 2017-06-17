@@ -1,3 +1,5 @@
-* Papers
+* Resource Links
   - MDPs in Probabilistic languages [https://link.springer.com/chapter/10.1007/978-3-319-23525-7_20]
   - Agent learning [http://agentmodels.org/]
+  - FGL lib explanation [https://web.engr.oregonstate.edu/~erwig/fgl/haskell/old/fgl0103.pdf]
+
