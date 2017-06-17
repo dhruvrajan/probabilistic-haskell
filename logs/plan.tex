@@ -1,4 +1,4 @@
-% Created 2017-06-16 Fri 09:49
+% Created 2017-06-16 Fri 10:03
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -150,8 +150,8 @@ This will be a new Haskell datatype, perhaps just something like \texttt{[Entry]
 Where an entry has multiple fields.
 
 \begin{center}
-\texttt{data Entry = -{}- To be defined}
-\texttt{data CDT = [Entry]}
+\texttt{data Entry = -{}- To be defined} \\
+      \texttt{data CDT = [Entry]}
 \end{center}
 
 Russel \& Norvig's book explains how to use noisy logical
@@ -165,8 +165,8 @@ The network is a graph, so it should be a collection of Nodes
 node will contain a \texttt{CDT} and two lists of nodes: one for
 parents, and one for children.
 \begin{center}
-\texttt{data Network = [Node]}
-\texttt{data Node = Node \{getCDT :: CDT, getParents :: [Node], getChildren :: [Node]\}}
+\texttt{data Network = [Node]} \\
+      \texttt{data Node = Node \{getCDT :: CDT, getParents :: [Node], getChildren :: [Node]\}}
 \end{center}
 
 This structure will \emph{definitely} change as I look into how to
