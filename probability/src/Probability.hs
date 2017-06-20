@@ -2,7 +2,7 @@
 module Probability where
 import Control.Monad
 
-type Distribution a = a -> Double
+import Distribution
 
 data Element a =
   Atomic (Distribution a) (Maybe a)
@@ -22,6 +22,12 @@ unobserve (If tst thn els _) = If tst thn els $ Nothing
 unobserve (Apply emt fn _)   = Apply emt fn $ Nothing
 unobserve (Chain emt fn _)   = Chain emt fn $ Nothing
 
+fromDistribution :: Distribution a -> Element a
+fromDistribution dist = Atomic dist Nothing
+
+flip :: Double -> Element Bool
+flip p = fromDistribution $ \x -> case x of True -> p
+                                            False -> 1 - p
 
 probability :: Eq a => Element a -> a -> Double
 probability (Atomic dist Nothing) val = dist val
