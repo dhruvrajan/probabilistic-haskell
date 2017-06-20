@@ -1,9 +1,6 @@
-{-# LANGUAGE GADTs #-}
 {-# LANGUAGE ExistentialQuantification #-}
 module Probability where
 import Control.Monad
-
-
 
 type Distribution a = a -> Double
 
@@ -26,40 +23,14 @@ unobserve (Apply emt fn _)   = Apply emt fn $ Nothing
 unobserve (Chain emt fn _)   = Chain emt fn $ Nothing
 
 
--- unobserve :: Element a -> Element a
--- data Element a where
---   -- distribution, observed value
---   Atomic :: Distribution a -> Maybe a -> Element a
---   If     :: Element Bool -> Element a -> Element a -> Maybe a -> Element a
---   Apply  :: Element b -> (b -> a) -> (Maybe a) -> Element a
---   Chain  :: Element b -> (b -> Element a) -> (Maybe a) -> Element a
+probability :: Eq a => Element a -> a -> Double
+probability (Atomic dist Nothing) val = dist val
+probability (Atomic dist (Just x)) val = if (x == val) then 1.0 else 0.0
 
---instance Functor Element where
---  fmap f e = Apply e f Nothing
+probability (If tst thn els Nothing) val =
+  (probability tst True) * (probability thn val) +
+  (probability tst False) * (probability els val)
 
 
--- class Element a where
---   observe :: a -> b -> a
---   unobserve :: a -> a
 
-
--- data Atomic a = Atomic (Distribution a) (Maybe a)
--- data If a = If (Element Bool) (Element a) (Element a) (Maybe a)
--- data Apply a b = Apply (Element a) (a -> b) (Maybe b)
-
--- fromDistribution :: Distribution a -> Element a
--- fromDistribution dist = Atomic dist Nothing
-
--- flip :: Double -> Element Bool
--- flip p = fromDistribution $ \ x  -> case x of True ->  p
---                                               False -> 1 - p         
-
-
--- probability :: Eq a => Element a -> a -> Double
--- probability Atomic { distribution = d, observed = Nothing } val = d val
--- probability Atomic { distribution = d, observed = Just val} x
---   = if (x == val) then 1.0 else 0.0
--- probability If {tst = tst, thn = thn, els = els} val =
---   (probability tst True) * (probability thn val) +
---   (probability tst False) * (probability els val)
 
