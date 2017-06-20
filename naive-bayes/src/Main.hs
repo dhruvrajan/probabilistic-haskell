@@ -8,6 +8,7 @@ import qualified Data.Map as Map
 import qualified Data.List as List
 
 
+
 -- Statistics Helper Functions
 mean :: [Float] -> Float
 mean ns = (sum ns) / (fromIntegral (length ns) :: Float)

@@ -6,7 +6,9 @@ import qualified Statistics.Matrix as Mat
 import Data.Either
 import Data.Maybe
 
-data NaiveBayes
+-- generate a vector of class probabilities
+classProbabilities :: Mat.Matrix -> Mat.Vector -> Mat.Vector
+classProbabilities featureVecs labels = 
 
 main :: IO ((Mat.Matrix, Mat.Vector))
 main = do raw <- parseCSVFromFile "data/diabetes.csv"
