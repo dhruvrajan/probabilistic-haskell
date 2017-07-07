@@ -50,16 +50,32 @@
     values.
     
     #+BEGIN_CENTER
-    =data Element a = Atomic {distribution :: Distribution a, observed :: Maybe a}=
+    =data Element a = Atomic (Distribution a) (Maybe a)=
     #+END_CENTER
     
     Thus, observations can be performed on atomic elements simply by
     changing this attribute.
 
 *** TODO Creating Compound Elements
-    The =Element= datatype has separate recursive type constructors for creating
-    compound elements from other elements. =If=, for example, creates an Element
-    from three existing elements. =Apply= and =Chain= have yet to be implemented.
+     The =Element= datatype has separate recursive type constructors for creating
+      compound elements from other elements.
+***** If
+      The =If= constructor creates an element from 3 distinct elements
+      #+BEGIN_CENTER
+      =If (Element Bool) (Element a) (Element a) (Maybe a)=
+      #+END_CENTER
+***** Apply
+      The =Apply= constructor uses an existential type parameter
+      #+BEGIN_CENTER
+      =forall b. Apply (Element b) (b -> a) (Maybe a)=
+      #+END_CENTER
+***** Chain
+      The =Chain= constructor uses an existential type parameter
+      #+BEGIN_CENTER
+      =forall b. Chain (Element b) (b -> Element a) (Maybe a)=
+      #+END_CENTER
+
+      
 
 *** TODO Simple Inference
     The =probability= function contains simple inference logic. Since

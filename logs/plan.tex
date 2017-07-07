@@ -1,4 +1,4 @@
-% Created 2017-06-17 Sat 10:23
+% Created 2017-06-19 Mon 23:49
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -87,17 +87,36 @@ on which their values are drawn, and one to keep track of the element's observed
 values.
 
 \begin{center}
-\texttt{data Element a = Atomic \{distribution :: Distribution a, observed :: Maybe a\}}
+\texttt{data Element a = Atomic (Distribution a) (Maybe a)}
 \end{center}
 
 Thus, observations can be performed on atomic elements simply by
 changing this attribute.
 
-\subsection{{\bfseries\sffamily TODO} Creating Compound Elements}
+\subsection{{\bfseries\sffamily DONE} Creating Compound Elements}
 \label{sec-1-6}
 The \texttt{Element} datatype has separate recursive type constructors for creating
-compound elements from other elements. \texttt{If}, for example, creates an Element
-from three existing elements. \texttt{Apply} and \texttt{Chain} have yet to be implemented.
+ compound elements from other elements.
+\subsubsection{If}
+\label{sec-1-6-1}
+The \texttt{If} constructor creates an element from 3 distinct elements
+\begin{center}
+\texttt{If (Element Bool) (Element a) (Element a) (Maybe a)}
+\end{center}
+\subsubsection{Apply}
+\label{sec-1-6-2}
+The \texttt{Apply} constructor uses an existential type parameter
+\begin{center}
+\texttt{forall b. Apply (Element b) (b -> a) (Maybe a)}
+\end{center}
+\subsubsection{Chain}
+\label{sec-1-6-3}
+The \texttt{Chain} constructor uses an existential type parameter
+\begin{center}
+\texttt{forall b. Chain (Element b) (b -> Element a) (Maybe a)}
+\end{center}
+
+
 
 \subsection{{\bfseries\sffamily TODO} Simple Inference}
 \label{sec-1-7}
