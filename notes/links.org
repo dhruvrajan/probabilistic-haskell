@@ -1,5 +1,11 @@
 * Resource Links
-  - MDPs in Probabilistic languages [https://link.springer.com/chapter/10.1007/978-3-319-23525-7_20]
+  - MDPs in Probabilistic languages
+    [https://link.springer.com/chapter/10.1007/978-3-319-23525-7_20]
   - Agent learning [http://agentmodels.org/]
-  - FGL lib explanation [https://web.engr.oregonstate.edu/~erwig/fgl/haskell/old/fgl0103.pdf]
+  - FGL lib explanation
+    [https://web.engr.oregonstate.edu/~erwig/fgl/haskell/old/fgl0103.pdf]
+  - Really nice haskell tutorials
+    [https://cseweb.ucsd.edu/classes/wi13/cse230-a/lectures.html]
+  - Symbolic Manipulation for Calculus in Haskell
+    [http://5outh.blogspot.com/2013/05/symbolic-calculus-in-haskell.html]
 
