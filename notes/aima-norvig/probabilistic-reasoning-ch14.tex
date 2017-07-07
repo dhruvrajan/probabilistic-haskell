@@ -39,9 +39,32 @@ A generic query to a full joint distribution (FJD) is the probability
 of a conjunction of assignments to each variable:
 $P(X_1 = x_1 \land \dots \land X_n = x_n)$. The following formula can
 be used.
-\begin{align*}
+\begin{align}
   P(x_1, \dots x_n) = \prod_{i = 1}^{n} P(x_i | parents(X_i))
-\end{align*}
+\end{align}
 So the Bayesian network can answer any query, simply by summing the
 relevant joint CPDs for each node.
+
+
+\subsection{Constructing Bayesian Networks}
+The \textbf{chain rule} can be derived from the above formula,
+using the product rule to reduce the terms.
+\begin{align}
+  P(x_1, \dots, x_n) = \prod_{i=1}^n P(x_i | x_{i-1}, \dots, x_n)
+\end{align}
+Comparing this with (2), we see that if a Bayesian network is
+a correct encoding of the domain, then every node is conditionally
+indedpendent of all its predecessors, given its parents.
+
+\subsection{Compactness and Node Ordering}
+Bayesian Networks owe their compactness to the fact that they are
+locally structured. In most networks each node has some maximum
+number of parents $k$, which reduces the total amount of info
+needed for representation.
+
+\section{Efficient Representation of Conditional Distributions}
+\textbf{canonical distributions} can be specified completely. For example,
+a \textbf{deterministic node} has its value specified exactly by the values
+of its parents, with no uncertainty (Like figaro's Apply).
+
 \end{document}
