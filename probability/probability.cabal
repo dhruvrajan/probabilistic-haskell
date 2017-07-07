@@ -15,9 +15,10 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Probability, Distribution
+  exposed-modules:     Distribution, Element, Inference
   build-depends:       base >= 4.7 && < 5
                      , statistics
+                     , containers
   default-language:    Haskell2010
 
 executable probability-exe
