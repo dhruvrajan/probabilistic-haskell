@@ -1,0 +1,42 @@
+#+TITLE: Notes on 'Stochastic Lambda Calculus and Monads of Probability Distributions by Avi Pfeffer'
+
+* Link [https://www.cs.tufts.edu/~nr/pubs/pmonad.pdf]
+* Motivation
+  - Agents have long been modeled using logic, but probabilistic
+    languages help deal with inherent uncertainty
+  - To build such a language, use /Stochastic lambda calculus/
+    - denotations of expressions are probability distributions, not
+      values
+  - Probability Distributions are Monadic
+*** Contributions
+    - Probability Monad leads to elegant implementations of
+      expectation, sampling, support
+      - Can be used as an intermediate form to simplify proofs of
+        desired properties
+    - Monadic Implementation of expectation is potentially much less
+      efficient than current techniques used in probabilistic
+      reasoning
+      - Does not exploit intensional properties of functions; only
+        applies functions
+      - Augment the stochastic lambda calculus with /measure terms/
+* Probabilistic Models and Queries
+*** Language
+    - lambda calculus + choose operator, where =chose p d1 d2= is a
+      linear combination of two distributions
+*** Queries
+***** Expectation
+      - /expectation/ of a function /h/ is the mean of /h/ over the
+        distribution
+***** Sampling
+      - /sampling/ is drawing a value from a distribution. Sampling
+	repeatedly allows us to approximate expectation, and estimate
+	the shape
+***** Support
+      - /support/ answers from what subset of the entire sample space
+	a sample might be drawn with nonzero probability
+*** Implementing Probabilistic Models (Monads, Measure Terms)
+* Semantics of Probability and the Probability Monad
+*** Measure Theory
+    - Probability Distributions are defined over some space X
+    - An /observable event/ is some subset of X
+      - These are the /measurable sets/ of X
