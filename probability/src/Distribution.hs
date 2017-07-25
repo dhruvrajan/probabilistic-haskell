@@ -31,6 +31,7 @@ instance Discrete Bernoulli Double where
 instance Discrete Bernoulli Bool where
   pmf (Bernoulli p) x = if (x == True) then p else 1 - p
 
+
 -- Normal Distribution
 data Normal = Normal Double Double
 
