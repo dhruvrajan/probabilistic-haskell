@@ -1,26 +1,28 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
 module Distribution where
 import Data.List (lookup)
 import Data.Maybe
+  
+class Distribution a where
+  sum :: a -> Double
+  
+class Distribution a => Discrete a b where
+  -- Probability Mass Function
+  pmf :: a -> b -> Double
 
-data Distribution a = Continuous (a -> Double) | Discrete [(a, Double)]
+class Distribution a =>  Continuous a where
+  pdf :: a -> Double -> Double
+  cdf :: a -> Double -> Double
 
-(->>) :: a -> b -> (a, b)
-x ->> y = (x, y)
 
-bernoulli :: Double -> Distribution Bool
-bernoulli p = Discrete [(True, p), (False, 1-p)]
+-- Bernoulli Distribution
+data Bernoulli = Bernoulli Double
 
-constant :: Eq a => a -> Distribution a
-constant val = Discrete [(val, 1.0)]
+instance Distribution Bernoulli where
+  sum (Bernoulli p) = p + (1 - p)
 
-select :: Eq a => [(a, Double)] -> Distribution a
-select pairs = Discrete pairs
+instance Discrete Bernoulli Double where
+  pmf (Bernoulli p) x = if (x == 1) then p else 1 - p
 
-pdf :: Eq a =>  Distribution a -> (a -> Double)
-pdf (Continuous fn) = fn
-pdf (Discrete pairs) =
-  \x ->
-    if sum [snd y | y <- pairs] == 1.0
-    then (\x -> if isJust x then fromJust x else 0.0) $ lookup x pairs
-    else error "weights must sum to one"
-
+instance Discrete Bernoulli Bool where
+  pmf (Bernoulli p) x = if (x == True) then p else 1 - p
