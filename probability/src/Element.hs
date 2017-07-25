@@ -5,7 +5,7 @@ import Distribution
 
 data Element a =
   forall d. Discrete d a => DiscreteAtomic d
-  | forall d. Continuous d => ContinuousAtomic d
+  | forall d. Continuous d a => ContinuousAtomic d
   | If (RV Bool) (RV a) (RV a)
   | forall b. Apply (RV b) (b -> a)
   | forall b. Chain (RV b) (b -> a)
@@ -23,7 +23,7 @@ unobserve (Unobserved e) = Unobserved e
 fromDiscrete :: Discrete d a => d -> RV a
 fromDiscrete dist = Unobserved $ DiscreteAtomic dist
 
-fromContinuous :: Continuous d => d -> RV a
+fromContinuous :: Continuous d a => d -> RV a
 fromContinuous dist = Unobserved $ ContinuousAtomic dist
 
 instance Show a => Show (Element a) where
