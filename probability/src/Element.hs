@@ -20,12 +20,6 @@ unobserve :: RV a -> RV a
 unobserve (Observed e _) = Unobserved e
 unobserve (Unobserved e) = Unobserved e
 
-fromDiscrete :: Discrete d a => d -> RV a
-fromDiscrete dist = Unobserved $ DiscreteAtomic dist
-
-fromContinuous :: Continuous d a => d -> RV a
-fromContinuous dist = Unobserved $ ContinuousAtomic dist
-
 instance Show a => Show (Element a) where
   show (DiscreteAtomic dist) = "DiscreteAtomic"
   show (ContinuousAtomic dist) = "ContinuousAtomic"

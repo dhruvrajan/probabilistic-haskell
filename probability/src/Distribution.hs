@@ -16,11 +16,18 @@ class Distribution a => Discrete a b where
   -- Probability Mass Function P(X=x)
   pmf :: a -> b -> Double
 
+  -- fromDiscrete :: a -> RV b
+  -- fromDiscrete dist = Unobserved $ DiscreteAtomic dist
+
 class Distribution a => Continuous a b where
   -- Probability Density Function P(X in [x, dx])
   pdf :: a -> b -> Double
   -- Cumulative Distribution Function P(X < x)
   cdf :: a  -> b -> Double
+
+  -- fromContinuous :: Continuous d -> RV a
+  -- fromContinuous dist = Unobserved $ ContinuousAtomic dist
+
 
 -- Bernoulli Distribution
 data Bernoulli = Bernoulli Double
@@ -35,7 +42,7 @@ instance Discrete Bernoulli Bool where
   pmf (Bernoulli p) x = if (x == True) then p else 1 - p
 
 -- Select Distribution
-data Select a  = Eq a => Select [(a, Double)]
+data Select a = Eq a => Select [(a, Double)]
 
 instance Distribution (Select a) where
   sumProbabilities (Select []) = 0
@@ -44,7 +51,8 @@ instance Distribution (Select a) where
 instance Discrete (Select a) a where
   pmf (Select pairs) x = case ListLib.lookup x pairs of
                            (Just p) -> p
-                           Nothing -> 0                           
+                           Nothing -> 0
+
 -- Normal Distribution
 data Normal = Normal Double Double
 
