@@ -1,66 +1,45 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE FlexibleInstances #-}
-
 module Distribution where
 
 import qualified Data.List as ListLib
 import qualified Statistics.Distribution as DistLib
 import qualified Statistics.Distribution.Normal as NormalLib
+import GHC.Float
 
--- Generic Distribution Classes  
-class Distribution a where
-  sumProbabilities :: a -> Double
-  
-class Distribution a => Discrete a b where
-  -- Probability Mass Function P(X=x)
-  pmf :: a -> b -> Double
+class Discrete a where
+  pmf :: Eq b => a b -> b -> Double
+  domain :: Eq b => a b -> [b]
 
-  -- fromDiscrete :: a -> RV b
-  -- fromDiscrete dist = Unobserved $ DiscreteAtomic dist
-
-class Distribution a => Continuous a b where
-  -- Probability Density Function P(X in [x, dx])
-  pdf :: a -> b -> Double
-  -- Cumulative Distribution Function P(X < x)
-  cdf :: a  -> b -> Double
-
-  -- fromContinuous :: Continuous d -> RV a
-  -- fromContinuous dist = Unobserved $ ContinuousAtomic dist
-
+class Continuous a where
+  pdf :: (RealFloat b, Fractional b) => a b -> b -> Double
+  cdf :: (RealFloat b, Fractional b) => a b -> b -> Double
 
 -- Bernoulli Distribution
-data Bernoulli = Bernoulli Double
+data Bernoulli a = Bernoulli Double a a
 
-instance Distribution Bernoulli where
-  sumProbabilities (Bernoulli p) = p + (1 - p)
-
-instance Discrete Bernoulli Double where
-  pmf (Bernoulli p) x = if (x == 1) then p else 1 - p
-
-instance Discrete Bernoulli Bool where
-  pmf (Bernoulli p) x = if (x == True) then p else 1 - p
+instance Discrete Bernoulli where
+  pmf (Bernoulli p s f) x = if (x == s) then p else 1 - p
+  domain (Bernoulli _ s f)  = [s, f]
 
 -- Select Distribution
-data Select a = Eq a => Select [(a, Double)]
+data Select a = Select [(a, Double)]
 
-instance Distribution (Select a) where
-  sumProbabilities (Select []) = 0
-  sumProbabilities (Select ((_, p):pairs)) = p + sumProbabilities (Select pairs)
-
-instance Discrete (Select a) a where
+instance Discrete Select where
   pmf (Select pairs) x = case ListLib.lookup x pairs of
                            (Just p) -> p
-                           Nothing -> 0
+                           Nothing -> 0                           
+  domain (Select pairs) = map fst pairs
 
+-- Constant Distribution
+data Constant a = Constant a
+
+instance Discrete Constant where
+  pmf (Constant c) x = if (c == x) then 1.0 else 0.0
+  domain (Constant c) = [c]
+  
 -- Normal Distribution
-data Normal = Normal Double Double
+data Normal a = Normal a a
 
-instance Continuous Normal Double where
-  pdf (Normal mu sigma) = DistLib.density $ NormalLib.normalDistr mu sigma
-  cdf (Normal mu sigma) = DistLib.cumulative $ NormalLib.normalDistr mu sigma
-  
-instance Distribution Normal where
-  sumProbabilities (Normal mu sigma) = (cdf (Normal mu sigma) mu) + (cdf (Normal mu sigma) mu)
-  
-  
+instance Continuous Normal where
+  pdf (Normal mu sigma) x = DistLib.density (NormalLib.normalDistr (realToFrac mu) (realToFrac sigma)) (realToFrac x)
+  cdf (Normal mu sigma) x = DistLib.cumulative (NormalLib.normalDistr (realToFrac mu) (realToFrac sigma)) (realToFrac x) 
