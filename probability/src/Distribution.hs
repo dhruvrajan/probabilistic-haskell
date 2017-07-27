@@ -8,7 +8,7 @@ import GHC.Float
 
 class Discrete a where
   pmf :: Eq b => a b -> b -> Double
-  domain :: Eq b => a b -> [b]
+  domain :: (Eq b) => a b -> [b]
 
 class Continuous a where
   pdf :: (RealFloat b, Fractional b) => a b -> b -> Double
