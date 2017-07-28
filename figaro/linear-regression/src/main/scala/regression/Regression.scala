@@ -2,10 +2,10 @@ package regression
 
 
 
-import coinflip.CoinFlip.{fairness, probability}
-import com.cra.figaro.algorithm.learning.EMWithBP
-import com.cra.figaro.language.{Apply, Chain, Flip}
-import com.cra.figaro.library.atomic.continuous.{AtomicNormal, Beta, Normal, Uniform}
+import com.cra.figaro.algorithm.learning.{EMWithBP, EMWithVE}
+import com.cra.figaro.algorithm.sampling.{Importance, MetropolisHastings}
+import com.cra.figaro.language.Apply
+import com.cra.figaro.library.atomic.continuous._
 
 object Regression extends App {
   /**
@@ -19,7 +19,6 @@ object Regression extends App {
               sigma: Double, size: Int) : Seq[(Double, Double)] = {
     val x = Normal(0, 1)
     val noise = Normal(0, sigma)
-    var xMean = 0.0
     for (_ <- 1 to size) yield {
       x.generate()
       noise.generate()
@@ -27,28 +26,36 @@ object Regression extends App {
     }
   }
 
-  val data = dataset(2, 2, 1, 100)
+  val data = dataset(22.33, 0, 0.1, 10)
 
-  val alpha = Beta(0, 10)
-  val beta = Beta(0, 10)
+  val alpha = Beta(20, 5)
+//  val beta = Normal(0, 25)
+//  val sigma = Dirichlet(2, 2)
+
+//  val importance = Importance(100, alpha)
+//  importance.start()
+  println("Started Importance Sampling")
 
   val trials = for ((x, y) <- data) yield {
-    val predictor = Normal(0, 1)
-    val mu = Apply(alpha, beta, predictor, (a: Double, b: Double, x: Double) => a * x + b)
+    val xv = Beta(0, 1)
+    val pair = Apply(alpha, xv, (a: Double, x: Double) => (x, a*x))
 
-    predictor.observe(x)
-    mu.observe(y)
-    (predictor, mu)
+    pair.observe((x, y))
+    pair
+
+//    val x_var = Normal(0, 1)
+//    val y_var = Apply(alpha, beta, x_var, (a: Double, b: Double, x: Double) => a * x + b)
+//
+//    x_var.observe(x)
+//    y_var.observe(y)
+//    (x_var, y_var)
   }
 
-  var algorithm = EMWithBP(alpha)
-  algorithm.start()
-  algorithm.kill()
+  println(Importance.probability(alpha,22))
 
-  algorithm = EMWithBP(beta)
-  algorithm.start()
-  algorithm.kill()
+  //println(MetropolisHastings.probability())
+//  println(s"Generated ${trials.length} trials.")
+//  println(s"Alpha Estimate: ${importance.expectation(alpha, (x: Double) => x)}")
+//  importance.kill()
 
-  println(s"Alpha: 2 learned: ${alpha.MAPValue}")
-  println(s"Beta: 2 learned ${beta.MAPValue}")
 }

@@ -3,7 +3,8 @@ package coinflip
 
 import com.cra.figaro.algorithm.learning.EMWithBP
 import com.cra.figaro.language.Flip
-import com.cra.figaro.library.atomic.continuous.Beta
+import com.cra.figaro.library.atomic.continuous.{Beta, Normal}
+import com.cra.figaro.patterns.learning.ParameterArray
 
 object CoinFlip extends App {
   def toss(prob: Double, n: Int): Seq[Boolean] = {
