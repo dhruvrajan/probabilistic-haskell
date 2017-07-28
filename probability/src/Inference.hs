@@ -1,20 +1,29 @@
 {-# LANGUAGE ExistentialQuantification #-}
 module Inference where
 
--- import Element
+import Element
 -- import Data.Dynamic
--- import Distribution
+import Distribution
 
--- probability :: Eq a => RV a -> a -> Double
--- probability (Unobserved (DiscreteAtomic dist) _) val = pmf dist val
--- --probability (Unobserved (ContinuousAtomic dist) _) val = pdf dist val
--- probability (Unobserved (CPD1 rv (((b), e):xs)) _) val =
---   (probability e val) * (probability rv b) +
---   (probability (Unobserved (CPD1 rv xs) []) val) 
--- probability (Unobserved (If tst thn els) _) val =
---   (probability tst True)  * (probability thn val) +
---   (probability tst False) * (probability els val)
--- probability (Observed (_) x _) val = if (x == val) then 1.0 else 0.0
+probability :: Eq a => RV a -> a -> Double
+probability (Unobserved (DiscreteAtomic dist) _) val = pmf dist val
+probability (Unobserved (CPD1 rv ((b, e):xs)) _) val =
+  probability e val
+  + (probability (Unobserved (CPD1 rv xs) []) val)
+  -- (probability e val) * (probability rv b) +
+
+  
+probability (Observed (_) x _) val = if (x == val) then 1.0 else 0.0
+
+cprob :: Eq a => Element a -> a -> Double
+cprob (DiscreteAtomic dist) val = pmf dist val
+cprob (CPD1 rv []) val = 0
+cprob (CPD1 rv ((x, var):xs)) val = cprob (element var) val + cprob (CPD1 rv xs) val
+
+--probability (Unobserved (ContinuousAtomic dist) _) val = pdf dist val
+--probability (Unobserved (If tst thn els) _) val =
+--  (probability tst True)  * (probability thn val) +
+--  (probability tst False) * (probability els val)
 
 
 -- getParents :: Element a -> [Variable]

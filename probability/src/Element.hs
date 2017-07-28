@@ -15,11 +15,8 @@ element :: RV a -> Element a
 element (Observed e _ _) = e
 element (Unobserved e _) = e
 
-probability :: Eq a => RV a -> a -> Double
-probability (Observed _ obs _) val = if val == obs then 1.0 else 0.0
-
-
-
+--probability :: Eq a => RV a -> a -> Double
+--probability (Observed _ obs _) val = if val == obs then 1.0 else 0.0
 
 
 
@@ -96,15 +93,17 @@ probability (Observed _ obs _) val = if val == obs then 1.0 else 0.0
 -- unobserve (Observed e _ ps) = Unobserved e ps
 -- unobserve (Unobserved e ps) = Unobserved e ps
 
--- instance Show a => Show (Element a) where
---   show (DiscreteAtomic dist) = "DiscreteAtomic"
--- --  show (ContinuousAtomic dist) = "ContinuousAtomic"
---   show (If _ _ _ ) = "If"
---   show (Apply _ _) = "Apply"
---   show (Chain _ _) = "Chain"
+instance Show a => Show (Element a) where
+  show (DiscreteAtomic dist) = "DiscreteAtomic"
+  show (CPD1 _ _) = "CPD 1"
+  show (CPD2 _ _ _) = "CPD 2"
+--  show (ContinuousAtomic dist) = "ContinuousAtomic"
+--  show (If _ _ _ ) = "If"
+--  show (Apply _ _) = "Apply"
+--  show (Chain _ _) = "Chain"
 
--- instance Show a => Show (RV a) where
---   show (Observed e val ps) = "Observed" ++ (show e) ++ (show val)
---   show (Unobserved e ps)  = "Unobserved (" ++ (show e) ++ ") "
+instance Show a => Show (RV a) where
+  show (Observed e val ps) = "Observed" ++ (show e) ++ (show val)
+  show (Unobserved e ps)  = "Unobserved (" ++ (show e) ++ ") "
 
         
