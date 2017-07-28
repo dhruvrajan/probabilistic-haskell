@@ -1,0 +1,144 @@
+% Created 2017-07-28 Fri 08:00
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\tolerance=1000
+\author{Dhruv Rajan}
+\date{\today}
+\title{Notes on Iterations of Distribution Representation (July 28th,  2017)}
+\hypersetup{
+  pdfkeywords={},
+  pdfsubject={},
+  pdfcreator={Emacs 25.1.1 (Org mode 8.2.10)}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+
+\section{First Iteration}
+\label{sec-1}
+\begin{itemize}
+\item Code at \url{https://github.com/dhruvrajan/probabilistic-haskell/blob/8eb317d225976c7883ff98b6ac625c87a0074036/probability/src/Distribution.hs}
+\item Used \texttt{MultiParameterTypeClasses}, \texttt{FlexibleInstances}, and
+\texttt{ExistentialQuantification} GHC extensions
+\item \textbf{Generic Probabiltiy Distribution}
+\begin{itemize}
+\item Single type parameter (distribution type)
+\item \texttt{sumProbabilities} method to sum the probabilities over its domain.
+\end{itemize}
+\item \textbf{Discrete Distribution}
+\begin{itemize}
+\item Typeclass with two type parameters: a distribution type, and a domain type
+\begin{itemize}
+\item Example: \texttt{instance Discrete Bernoulli Bool} (A Bernoulli
+distribution defined over \texttt{[True, False]})
+\item \texttt{pmf} (Probability Mass Function) defined over the discrete
+domain
+\end{itemize}
+\end{itemize}
+\item \textbf{Continuous Distribution}
+\begin{itemize}
+\item Typeclass with two type parameters: a distribution type, and a domain type
+\begin{itemize}
+\item Example: \texttt{instance Continuous Normal Double} vs. \texttt{instance
+	Continuous Normal Float}
+\end{itemize}
+\item \texttt{pdf} (Probability Density Function) defined over the continuous
+domain
+\item \texttt{cdf} (Cumulative Distribution Function) defined over the
+continuous domain
+\end{itemize}
+\item \textbf{Distribution Types}
+\begin{itemize}
+\item Each distribution is represented as its own datatype. The constructor
+takes the distributions parameters in the constructor
+\begin{itemize}
+\item Example: (\texttt{data Normal = Normal Double Double})
+\end{itemize}
+\end{itemize}
+\item \textbf{Issue}
+\begin{itemize}
+\item In this representation, the domain of a probability distribution
+is kept separate from its dataype. For example, A Bernoulli
+distribution is only paired with its specific domain (could be
+over Bool, over Int, over String, etc.) in a typeclass instance.
+\item This produces interesting, but incorrect behavior. A Bernoulli
+distribution is not sufficiently defined by just its parameter,
+without a domain-and thus should not be allowable. The next
+iteration attemts to associate distributions with their domains
+via a type parameter to their respective datatypes.
+\end{itemize}
+\end{itemize}
+\section{Second Iteration}
+\label{sec-2}
+\begin{itemize}
+\item Code at \url{https://github.com/dhruvrajan/probabilistic-haskell/blob/ac8197ded0bada83be2ecbc54ff509bd4847bbc4/probability/src/Distribution.hs}
+\item Now only using the \texttt{Existential Quantification} GHC Extension
+\item \textbf{Generic Probability Distribution}
+\begin{itemize}
+\item Does not have a typeclass. Probability distributions must either
+be Discrete, or Continuous. The original generic typeclass was
+not really of any use, so this is a cleaner distinction.
+\end{itemize}
+\item \textbf{Discrete Distribution}
+\begin{itemize}
+\item Typeclass with a single type parameter (distribution type)
+\item \texttt{pmf} (Probability Mass Function) defined over some discrete domain
+\begin{itemize}
+\item Note the function's type signature:
+\begin{itemize}
+\item \texttt{pmf \textbackslash{}:: Eq b => a b -> b -> Double}
+\item It requires that \texttt{a} has some type parameter \texttt{b}. Thus,
+every discrete distribution datatype must specify its domain
+type as a type parameter.
+\item Example: \texttt{data Bernoulli a = Bernoulli Double a a} where the
+constructor's first parameter is the single parameter to the
+Bernoulli distribution, and the second two are the outcomes
+\emph{success} and \emph{fail}
+\end{itemize}
+\end{itemize}
+\end{itemize}
+\item \textbf{Continuous Distribution}
+\begin{itemize}
+\item Typeclass with a single type parameter (distribution type)
+\item \texttt{pmf} and \texttt{cdf} functions defined over some continuous domain
+\item Note the functions' type signatures:
+\begin{itemize}
+\item \texttt{pdf \textbackslash{}:: (RealFloat b, Fractional b) => a b -> b -> Double}
+\item \texttt{cdf \textbackslash{}:: (RealFloat b, Fractional b) => a b -> b -> Double}
+\item So \texttt{b} the domain type of any continuous distribution \texttt{a}, must
+be an instance of \texttt{RealFloat} and \texttt{Fractional}
+\end{itemize}
+\item Example: \texttt{data Normal a = Normal a a}
+\begin{itemize}
+\item For a normal distribution, the type parameter specifies the types
+of the Normal parameters $\mu$ and $\sigma$; these could be \texttt{Double}, 
+or \texttt{Float}, etc.
+\end{itemize}
+\end{itemize}
+\item \textbf{Problems Solved}
+\begin{itemize}
+\item This second iteration allows for a clean representation of
+multiple types of distributions. Each domain is associated with
+its domain in its datatype. This will help in cases like
+implementing sampling methods for each distribution. Additionally,
+it makes it easy to tell whether an \texttt{Element} is discrete or continuous,
+depending on its distribution.
+\end{itemize}
+\end{itemize}
+% Emacs 25.1.1 (Org mode 8.2.10)
+\end{document}
