@@ -18,7 +18,7 @@ class Continuous a where
 data Bernoulli a = Bernoulli Double a a
 
 instance Discrete Bernoulli where
-  pmf (Bernoulli p s f) x = if (x == s) then p else 1 - p
+  pmf (Bernoulli p s f) x = if (x == s) then p else (if (x == f) then 1 - p else 0.0)
   domain (Bernoulli _ s f)  = [s, f]
 
 -- Select Distribution
