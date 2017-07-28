@@ -31,8 +31,6 @@ worlds [] = [[]]
 worlds (xs:xss) = [(x:ys) | x <- xs, ys <- yss] where
   yss = worlds xss
 
-
-
 getFactor :: Eq a => Element a -> ([[a]], [a], HM.Matrix Double)
 getFactor rv = (col, row, cpt) where
   col = worlds $ domains $ getParents $ rv
@@ -40,10 +38,13 @@ getFactor rv = (col, row, cpt) where
   cpt = case rv of
     (DiscreteAtomic d) -> HM.fromLists [[pmf d x | x <- domain d]]
     (CPD1 rv1 pairs) -> HM.fromLists [[probability var d | d <- values rv] | (val, var) <- pairs]
+
+--mult :: Eq a => ([[a]], [a], HM.Matrix Double)
+--  -> ([[a]], [a], HM.Matrix Double)
+--  -> ([[a]], [a], HM.Matrix Double)
+--mult (idx1, v1, p1) (idx2, v2, p2) = ((union idx 1 id2), v1, p1)
 --    (CPD2 rv1 rv2 pairs) -> [[probability v d] | (x, v) <- pairs, d <- values rv]
   
-  
-
 
 a = Unobserved (DiscreteAtomic $ Bernoulli 0.2 "red" "green") []
 b = Unobserved (DiscreteAtomic $ Bernoulli 0.3 "paper" "metal") []
