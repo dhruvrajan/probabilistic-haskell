@@ -4,6 +4,9 @@ import Control.Monad
 import Distribution
 import Data.List
 
+
+
+
 data Element a =
   forall d. Discrete d => DiscreteAtomic (d a)
   | CPD1 (RV a) [(a, RV a)]
