@@ -18,50 +18,48 @@ data State = State
 initialState :: Int -> State
 initialState i = State {next=i, universe=Map.empty, names=Map.empty}
 
-notify :: (Node -> Node) -> Universe -> Universe
-notify = Map.map
+notifyAll :: (Node -> Node) -> Universe -> Universe
+notifyAll = Map.map
 
-notifyParents :: Universe -> Int -> [Int] -> Universe
-notifyParents universe _ [] = universe
-notifyParents universe child (p:ps) = notifyParents universe' child ps where
-  parentLookup = Map.lookup p universe
-  universe' = case parentLookup of
-                Just parent -> Map.insert p newParent universe where
-                  cs = children parent
-                  newParent = parent {children=child:cs}
+-- | TODO: Proper Error Handling
+notifySelect :: Universe -> (Node -> Node) -> [Int] -> Universe
+notifySelect universe _ [] = universe
+notifySelect universe f (n:ns) = notifySelect universe' f ns where
+  nodeLookup = Map.lookup n universe
+  universe' = case nodeLookup of
+                Just node -> Map.insert n node' universe where
+                  node' = f node
                 Nothing -> universe
-                  
-notifyChildren :: Universe -> Int -> [Int] -> Universe
-notifyChildren universe _ [] = universe
-notifyChildren universe parent (c:cs)
-  = notifyChildren universe' parent cs where
-  childLookup = Map.lookup c universe
-  universe' = case childLookup of
-                Just child -> Map.insert c newChild universe where
-                  ps = parents child
-                  newChild = child {parents=parent:ps}
-                Nothing -> universe
+
+-- | TODO: Proper Error Handling
+-- | Requires that node is in the Universe to begin with
+notifyParents :: Universe -> Int -> Universe
+notifyParents universe n = notifySelect universe f select where
+  select = fromJust $ fmap parents $ Map.lookup n universe
+  f = \ node -> node {children=n : (children node)}
+
+-- | TODO: Proper Error Handling
+-- | Requires that node is in the Universe to begin with
+notifyChildren :: Universe -> Int -> Universe
+notifyChildren universe n = notifySelect universe f select where
+  select = fromJust $ fmap children $ Map.lookup n universe
+  f = \ node -> node {parents=n : (parents node)}
 
 notifyUniverse :: Universe -> Node -> Universe
 notifyUniverse universe (Node {identity=incoming, parents=ps, children=cs})
   = universe''
   where
-    universe' = notifyParents universe incoming ps
-    universe'' = notifyChildren universe' incoming cs
+    universe' = notifyParents universe incoming
+    universe'' = notifyChildren universe' incoming
 
 add :: State -> String -> Node -> (Node, State)
 add state name node = (node', state') where
   n = next state
   node' = node {identity=n}
+  universe' = Map.insert n node' (universe state)
   newNames = Map.insert name n $ names state
-  universe' = notifyUniverse (universe state) node'
-  universe'' = Map.insert n node' universe'
+  universe'' = notifyUniverse universe' node'
   state' = state {next=n + 1, universe=universe'', names=newNames}
-
-
-
-addNormal :: State -> String -> Double -> Double ->  (Node, State)
-addNormal state name mu sigma = add state name (createDetachedNode $ Normal mu sigma)
 
 addBernoulli :: State -> String -> Double -> (Node, State)
 addBernoulli state name p = add state name (createDetachedNode $ Bernoulli p)

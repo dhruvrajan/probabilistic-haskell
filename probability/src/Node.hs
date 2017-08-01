@@ -7,15 +7,16 @@ import qualified  Distribution as Dist
 import qualified Data.Map.Strict as Map
 import qualified Distribution as Dist
 
-data Payload = Normal Double Double | Bernoulli Double | If deriving (Show)
+data Payload = Bernoulli Double | If deriving (Show)
+--data Payload a = Normal a a | Bernoulli Double a a deriving (Show)
 
 
-data Node = Node
+data Node = Node 
   {
     identity :: Int,
     parents :: [Int],
     children :: [Int],
-    payload :: Payload    
+    payload :: Payload
   } deriving (Show)
 
 createNode :: Int -> [Int] -> [Int] -> Payload -> Node
