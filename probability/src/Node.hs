@@ -1,11 +1,13 @@
 {-# LANGUAGE ExistentialQuantification #-}
+
 module Node where
 
 import Prelude hiding (id)
+import qualified  Distribution as Dist
 import qualified Data.Map.Strict as Map
-import Distribution
+import qualified Distribution as Dist
 
-data Payload = Payload deriving (Show)
+data Payload = Normal Double Double | Bernoulli Double | If deriving (Show)
 
 
 data Node = Node
@@ -15,3 +17,11 @@ data Node = Node
     children :: [Int],
     payload :: Payload    
   } deriving (Show)
+
+createNode :: Int -> [Int] -> [Int] -> Payload -> Node
+createNode = Node
+
+createDetachedNode :: Payload -> Node
+createDetachedNode payload = Node 0 [] [] payload
+
+
