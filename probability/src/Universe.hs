@@ -11,12 +11,13 @@ data State = State
   {
     next :: Int,
     universe :: Universe,
-    names :: Map.Map String Int
+    names :: Map.Map String Int,
+    ids :: Map.Map Int String
   } deriving (Show)
 
 
 initialState :: Int -> State
-initialState i = State {next=i, universe=Map.empty, names=Map.empty}
+initialState i = State {next=i, universe=Map.empty, names=Map.empty, ids=Map.empty}
 
 notifyAll :: (Node -> Node) -> Universe -> Universe
 notifyAll = Map.map
@@ -59,19 +60,36 @@ add state name node = (node', state') where
   universe' = Map.insert n node' (universe state)
   newNames = Map.insert name n $ names state
   universe'' = notifyUniverse universe' node'
-  state' = state {next=n + 1, universe=universe'', names=newNames}
+  newIds = Map.insert n name $ ids state
+  state' = state {next=n + 1, universe=universe'', names=newNames, ids=newIds}
 
 addBernoulli :: State -> String -> Double -> (Node, State)
-addBernoulli state name p = add state name (createDetachedNode $ Bernoulli p)
+addBernoulli state name p = add state name (createDetachedNode $ Unobserved $ Bernoulli p)
 
-addIf :: State -> String -> String -> String -> String -> (Node, State)
-addIf state name chk thn els = add state name
-  (createNode 0 [fromJust $ Map.lookup chk (names state),
-                 fromJust $ Map.lookup thn (names state),
-                 fromJust $ Map.lookup els (names state)] [] If)
+-- TODO: Proper Error Handling
+getNodeId :: State -> String -> Int
+getNodeId state name = fromJust $ Map.lookup name (names state)
 
-s = initialState 0
-(b, s') = addBernoulli s "b" 0.4
-(c, s'') = addBernoulli s' "c" 0.5
-(d, s''') = addBernoulli s'' "d" 0.6
-(e, s'''') = addIf s''' "e" "b" "c" "d"
+-- TODO: Proper Error Handling
+getNode :: State -> String -> Node
+getNode state name = fromJust $ Map.lookup (getNodeId state name) (universe state)
+
+-- TODO: Proper Error Handling
+getName :: State -> Int -> String
+getName state n = fromJust $ Map.lookup n (ids state)
+
+addCPD :: State -> String -> String -> Double -> Double -> (Node, State)
+addCPD state name parent ift iff
+  = add state name (createNode 0 [getNodeId state parent] [] $ Unobserved $ CPD1 ift iff)
+
+-- addIf :: State -> String -> String -> String -> String -> (Node, State)
+-- addIf state name chk thn els = add state name
+--   (createNode 0 [fromJust $ Map.lookup chk (names state),
+--                  fromJust $ Map.lookup thn (names state),
+--                  fromJust $ Map.lookup els (names state)] [] (Unobserved ))
+
+-- s = initialState 0
+-- (b, s') = addBernoulli s "b" 0.4
+-- (c, s'') = addBernoulli s' "c" 0.5
+-- (d, s''') = addBernoulli s'' "d" 0.6
+-- (e, s'''') = addCPD s''' "e" "b" 0.5 0.2
