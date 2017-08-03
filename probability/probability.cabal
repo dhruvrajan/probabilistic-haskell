@@ -18,6 +18,7 @@ library
   exposed-modules:     Distribution, Element, Inference, Factor
   build-depends:       base >= 4.7 && < 5
                      , statistics
+                     , HUnit
                      , containers
                      , random
                      , hmatrix
