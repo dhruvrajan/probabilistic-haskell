@@ -45,6 +45,51 @@ projectFactor :: Factor -> Bool -> Factor
 projectFactor (Factor keys table)  bool
   = Factor keys (Map.filterWithKey (\k _ -> last k == bool) table)
 
+
+splitPerm :: [Int] -> [Int] -> [Bool] -> ([Bool], [Bool])
+splitPerm f1 f2 ps = (f1Perm, f2Perm) where
+  newKeys = reverse $ sort $ union f1 f2
+  enumPs = zip newKeys ps
+  f1PermPairs = filter (\(nid, p) -> elem nid f1) enumPs
+  f1Perm = map (\(x, y) -> y) f1PermPairs
+
+  f2PermPairs = filter (\(nid, p) -> elem nid f2) enumPs
+  f2Perm = map(\(x, y) -> y) f2PermPairs
+  
+
+pointwiseProduct :: Factor -> Factor -> Factor
+pointwiseProduct f1 f2 = f3 where
+  table1 = table f1
+  table2 = table f2
+  newKeys = reverse $ sort $ union (keys f1) (keys f2)
+  perms = boolPermutations $ length newKeys
+  pairs = map ( \x -> (x, splitPerm (keys f1) (keys f2) x)) perms
+  evalProbs = map (\(x, (f1_v, f2_v)) -> (x, (fromJust $ Map.lookup f1_v table1) *
+                                         (fromJust $ Map.lookup f2_v table2))) pairs
+
+  table3 = Map.fromList evalProbs
+  f3 = Factor newKeys table3
+  
+  
+
+f1 = Factor [0] $ Map.fromList [([True], 0.2), ([False], 0.8)]
+f2 = Factor [1, 0] $ Map.fromList [([True, True], 0.3), ([True, False], 0.4),
+                                   ([False, True], 0.7), ([False, False], 0.6)]
+
+table1 = table f1
+table2 = table f2
+newKeys = reverse $ sort $ union (keys f1) (keys f2)
+perms = boolPermutations $ length newKeys
+pairs = map ( \x -> (x, splitPerm (keys f1) (keys f2) x)) perms
+evalProbs = map (\(x, (f1_v, f2_v)) -> (x, (fromJust $ Map.lookup f1_v table1) *
+                                         (fromJust $ Map.lookup f2_v table2))) pairs
+
+table3 = Map.fromList evalProbs
+f3 = Factor newKeys table3
+      
+  
+  
+
 sumOut :: Int -> Factor -> Factor
 sumOut nodeId (Factor vars table)  = normalizeFactor $ Factor newVars newKeys where
   targetIdx = fromJust $ elemIndex nodeId vars
@@ -62,7 +107,7 @@ sumOut nodeId (Factor vars table)  = normalizeFactor $ Factor newVars newKeys wh
   newKeys = Map.mapKeys (\k1 -> deleteAt targetIdx k1) newValues
   newVars = delete nodeId vars
 
-  
+
 s = initialState 0
 (a, s') = addBernoulli s "a" 0.3
 (b, s'') = addCPD s' "b" "a" 0.4 0.5
