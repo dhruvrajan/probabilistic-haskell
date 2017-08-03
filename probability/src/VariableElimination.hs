@@ -14,6 +14,12 @@ boolPermutations 0 = [[]]
 boolPermutations n = let ps = boolPermutations (n - 1)
                       in union  [True:cs | cs <- ps] [False:cs | cs <- ps]
 
+keys :: Factor -> [Int]
+keys (Factor l m) = l
+
+table :: Factor -> (Map.Map [Bool] Double)
+table (Factor l m) = m
+
 getFactor :: State -> String -> Factor
 getFactor state name = factor where
   nodeId = getNodeId state name
@@ -23,55 +29,65 @@ getFactor state name = factor where
   probs = map (localProbability node) keys
   factor = Factor factorVars (Map.fromList (zip keys probs))
 
+sumTable :: (Map.Map [Bool] Double) -> Double
+sumTable map = sum $ Map.elems map
+
+normalizeFactor :: Factor -> Factor
+normalizeFactor (Factor vars table) = Factor vars table' where
+  sum = sumTable table
+  table' = Map.map (\k -> k / sum) table
+
+deleteAt :: Int -> [a] -> [a]
+deleteAt n l = (init l1) ++ l2 where
+  (l1, l2) = splitAt (n + 1) l
 
 projectFactor :: Factor -> Bool -> Factor
 projectFactor (Factor keys table)  bool
   = Factor keys (Map.filterWithKey (\k _ -> last k == bool) table)
 
-multiplyFactors :: Factor -> Factor -> Factor
+sumOut :: Int -> Factor -> Factor
+sumOut nodeId (Factor vars table)  = normalizeFactor $ Factor newVars newKeys where
+  targetIdx = fromJust $ elemIndex nodeId vars
+  -- Target is True
+  isTrue = Map.filterWithKey (\k _ -> k !! targetIdx == True) table
+  isTrue' = Map.mapKeys (\k1 -> deleteAt targetIdx k1) isTrue
 
+  -- Target is False
+  isFalse = Map.filterWithKey (\k _ -> k !! targetIdx == False) table
+  isFalse' = Map.mapKeys (\k1 -> deleteAt targetIdx k1) isFalse
 
+  -- TODO: Proper Maybe Handling
+  newValues = Map.mapWithKey (\k v -> v + (fromJust $ Map.lookup k isFalse')) isTrue'
 
--- data CPD = CPD { var :: String, pars :: [String],  table :: Map.Map ([Bool], Bool) Double } deriving(Show)
--- -- CPD (factor name) (parent names) (Matrix)
+  newKeys = Map.mapKeys (\k1 -> deleteAt targetIdx k1) newValues
+  newVars = delete nodeId vars
 
--- getCPD :: State -> Node -> CPD
--- getCPD state Node{payload=Unobserved (Bernoulli p), identity=n, parents=ps}
---   = CPD (getName state n) (map (getName state) ps)
---   $ Map.fromList [(([], True), p), (([], False), 1-p)]
-
--- getCPD state Node{payload=Unobserved (CPD1 ift iff), identity=n, parents=ps}
---   = CPD (getName state n)  (map (getName state) ps)
---   $ Map.fromList [(([True], True), ift), (([True], False), 1-ift),
---                   (([False], True), iff), (([False], False), 1-iff)]
-
--- getFactor :: State -> Node -> CPD
--- getFactor state node = case node of
---                          Node{payload=Observed _ obs} -> let cpd = getCPD state node
---                                                          in CPD (var cpd) (pars cpd) $
---                                                             Map.fromList $ filter (\ ((_, val), _) -> val == obs) $
---                                                             Map.toList $ table $ cpd
-                                                           
-
---                          Node{payload=Unobserved _} -> getCPD state node
-
--- pointwiseProduct :: CPD -> CPD -> CPD
--- pointwiseProduct CPD{var=var1, pars=pars1, table=table1} CPD{var=var2, pars=pars2, table=table2}
---   | pars1 == pars2 = CPD var1 (pars1) $ Map.fromList $ map (\(k, v)->
--- (k, v *  (fromJust $ Map.lookup k table2))) $ Map.toList table1
-
--- elimination :: State -> String -> Int -> CPD -> CPD
--- elimination State{next=n1} _ n2 last | n1 == n2 = last
--- elimination state name n last | pars last = pointwiseProduct last (getCPD state name)
-
-
--- getCPD state Node{payload=Observed _ value, identity=n, parents=ps}
---   = CPD (getName state n) (map (getName state ) ps)
---   $ Map.fromList [(([], True), if value then 1.0 else 0.0),
---                   (([], False), if not value then 1.0 else 0.0)]
-
+  
 s = initialState 0
 (a, s') = addBernoulli s "a" 0.3
 (b, s'') = addCPD s' "b" "a" 0.4 0.5
---TODO: Check Dimensions of matrices somehow
+
+
+factor = getFactor s'' "b"
+nodeId = 1
+
+vars = keys factor
+t = table factor
+
+targetIdx = fromJust $ elemIndex nodeId vars
+ -- Target is True
+isTrue = Map.filterWithKey (\k _ -> k !! targetIdx == True) t
+isTrue' = Map.mapKeys (\k1 -> deleteAt targetIdx k1) isTrue
+
+-- Target is False
+isFalse = Map.filterWithKey (\k _ -> k !! targetIdx == False) t
+isFalse' = Map.mapKeys (\k1 -> deleteAt targetIdx k1) isFalse
+
+-- TODO: Proper Maybe Handling
+newValues = Map.mapWithKey (\k v -> v + (fromJust $ Map.lookup k isFalse')) isTrue'
+
+newVars = delete nodeId vars
+
+normalizedValues = normalizeFactor $ Factor newVars newValues
+
   
