@@ -124,7 +124,7 @@ testSumOut = TestCase (assertEqual "sum out a variable" real vals) where
   p3 = pointwiseProduct f1 f2 -- this is verified to be correct in testPointwiseProduct
 
   s1 = sumOut 0 p3
-  r1 = Factor [2, 1] $ Map.fromList [([True, True], 0.24),
+  r1 = normalizeFactor $ Factor [2, 1] $ Map.fromList [([True, True], 0.24),
                                      ([True, False], 0.48),
                                      ([False, True], 0.96),
                                      ([False, False], 0.32)]

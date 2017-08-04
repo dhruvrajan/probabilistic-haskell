@@ -47,9 +47,14 @@ deleteAt :: Int -> [a] -> [a]
 deleteAt n l = (init l1) ++ l2 where
   (l1, l2) = splitAt (n + 1) l
 
-projectFactor :: Factor -> Bool -> Factor
-projectFactor (Factor keys table)  bool
-  = Factor keys (Map.filterWithKey (\k _ -> last k == bool) table)
+projectFactor :: Factor -> Int -> Bool -> Factor
+projectFactor (Factor keys table) target bool = Factor keys newTable where
+  targetIndex = fromJust $ elemIndex target keys
+  newTable = Map.filterWithKey (\k _ -> k !! targetIndex == bool) table
+  
+
+--projectFactor (Factor keys table)  bool
+--  = Factor keys (Map.filterWithKey (\k _ -> last k == bool) table)
 
 
 splitPerm :: [Int] -> [Int] -> [Bool] -> ([Bool], [Bool])
@@ -93,9 +98,12 @@ evalProbs = map (\(x, (f1_v, f2_v)) -> (x, (fromJust $ Map.lookup f1_v table1) *
 table3 = Map.fromList evalProbs
 f3 = Factor newKeys table3
 
+
+
+  
 sumOut :: Int -> Factor -> Factor
-sumOut nodeId (Factor vars table)  = normalizeFactor $ Factor newVars newKeys where
-  targetIdx = traceShowId $ fromJust $ elemIndex nodeId vars
+sumOut nodeId (Factor vars table)  = normalizeFactor $ Factor newVars newValues where
+  targetIdx = fromJust $ elemIndex nodeId vars
   -- Target is True
   isTrue = Map.filterWithKey (\k _ -> k !! targetIdx == True) table
   isTrue' = Map.mapKeys (\k1 -> deleteAt targetIdx k1) isTrue
@@ -107,7 +115,7 @@ sumOut nodeId (Factor vars table)  = normalizeFactor $ Factor newVars newKeys wh
   -- TODO: Proper Maybe Handling
   newValues = Map.mapWithKey (\k v -> v + (fromJust $ Map.lookup k isFalse')) isTrue'
 
-  newKeys = Map.mapKeys (\k1 -> deleteAt targetIdx k1) newValues
+  --newKeys = Map.mapKeys (\k1 -> deleteAt targetIdx k1) newValues
   newVars = delete nodeId vars
 
 
@@ -116,8 +124,16 @@ sumOut nodeId (Factor vars table)  = normalizeFactor $ Factor newVars newKeys wh
 -- (b, s'') = addCPD s' "b" "a" 0.4 0.5
 
 
--- factor = getFactor s'' "b"
--- nodeId = 1
+-- --factor = getFactor s'' "b"
+-- factor= Factor [2, 1, 0] $ Map.fromList [([True, True, True], 0.06),
+--                                         ([True, True, False], 0.18),
+--                                         ([True, False, True], 0.42),
+--                                         ([True, False, False], 0.06),
+--                                         ([False, True, True], 0.24),
+--                                         ([False, True, False], 0.72),
+--                                         ([False, False, True], 0.28),
+--                                         ([False, False, False], 0.04)]
+-- nodeId = 0
 
 -- vars = keys factor
 -- t = table factor
