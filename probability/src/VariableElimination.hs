@@ -29,6 +29,20 @@ boolPermutations n = let ps = boolPermutations (n - 1)
 getFactor :: State -> String -> Factor
 getFactor state name = factor where
   nodeId = getNodeId state name
+  --node = getNode state name
+
+  -- TODO: FIX BUG 
+  -- parentNodes = parents node
+  -- parentKeys = boolPermutations $ length parentNodes
+  -- nodeKeys = [True, False]
+  
+  -- ks = [(pkeys, nkey) | pkeys <- parentKeys, nkey <- nodeKeys]
+  -- probs = map (\(ps, n) -> localProbability node ps n) ks
+
+  -- factorKeys  = map (\(ps, n) -> reverse $ sort $ ps ++ [n]) ks
+  -- factorVars = reverse $ sort $ nodeId : parentNodes
+  -- factor = Factor factorVars (Map.fromList (zip factorKeys probs))
+  
   factorVars = reverse $ sort $ nodeId : (parents $ getNode state name)
   keys = boolPermutations $ length factorVars
   node = getNode state name

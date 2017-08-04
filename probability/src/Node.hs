@@ -5,9 +5,8 @@ module Node where
 import Prelude hiding (id)
 import qualified Data.Map.Strict as Map
 
-data Dist = Bernoulli Double | CPD1 Double Double deriving (Show)
+data Dist = Bernoulli Double | CPD1 Double Double | CPD2 Double Double Double Double deriving (Show)
 data Payload = Observed Dist Bool | Unobserved Dist deriving (Show)
---data Payload a = Normal a a | Bernoulli Double a a deriving (Show) 
 
 
 data Node = Node 
@@ -33,3 +32,13 @@ localProbability node vals
                                                    if last vals then ift else 1-ift
                                                  else
                                                    if last vals then iff else 1 - iff
+
+-- localProbability :: Node -> [Bool] -> Bool -> Double
+-- localProbability node ps val
+--   | not $ (length ps) == (length $ parents node) = 0.0 -- TODO: Proper Error Handling
+--   | otherwise = case node of
+--       Node{payload=Unobserved (Bernoulli p)} -> if val then p else 1-p
+--       Node{payload=Unobserved (CPD1 ift iff)} -> if ps !! 0 then
+--                                                    if val then ift else 1-ift
+--                                                  else
+--                                                    if val then iff else 1 - iff

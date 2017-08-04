@@ -7,8 +7,8 @@ import Test.HUnit
 testAtomic1 = TestCase (assertEqual "probabilities match" probs realProbs) where
   -- Simple test for an Atomic, Unobserved node
   node1 = createNode 0 [] [] (Unobserved $ Bernoulli 0.4)
-  prob1 = localProbability node1 [True]
-  prob2 = localProbability node1 [False]
+  prob1 = localProbability node1 [] True
+  prob2 = localProbability node1 [] False
   probs = (prob1, prob2)
   realProbs = (0.4, 0.6)
 
@@ -18,14 +18,14 @@ testCompound1 = TestCase (assertEqual "probabilities match" probs realProbs) whe
   node2 = createNode 1 [0] [] (Unobserved $ CPD1 0.2 0.4)
 
   -- Testing Atomic
-  prob1 = localProbability node1 [True]
-  prob2 = localProbability node1 [False]
+  prob1 = localProbability node1 [] True
+  prob2 = localProbability node1 [] False
 
   -- TEsting Compound
-  prob3 = localProbability node2 [True, True]
-  prob4 = localProbability node2 [True, False]
-  prob5 = localProbability node2 [False, True]
-  prob6 = localProbability node2 [False, False]
+  prob3 = localProbability node2 [True] True
+  prob4 = localProbability node2 [True] False
+  prob5 = localProbability node2 [False] True
+  prob6 = localProbability node2 [False] False
 
   probs = (prob1, prob2, prob3, prob4, prob5, prob6)
   realProbs = (0.3, 0.7,  0.2, 0.8, 0.4, 0.6)
