@@ -1,10 +1,12 @@
 {-# LANGUAGE ExistentialQuantification #-}
+
 module Distribution where
 
 import qualified Data.List as ListLib
 import qualified Statistics.Distribution as DistLib
 import qualified Statistics.Distribution.Normal as NormalLib
 import GHC.Float
+
 
 class Discrete a where
   pmf :: Eq b => a b -> b -> Double
