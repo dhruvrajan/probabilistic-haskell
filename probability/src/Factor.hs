@@ -1,51 +1,59 @@
 module Factor where
 
-import qualified Data.Vector as V
+--import qualified Data.Vector as V
 import qualified Data.Map as M
+import Data.List
 import Data.Maybe
 import Debug.Trace
 
-type KeyType = Bool -- just dealing with bools for nowx
+type KeyType = Bool -- just dealing with bools for now
 
 -- | A lookup table. Values are of type a, and
 -- the input is a vector of KeyType
-type Table a = M.Map (V.Vector KeyType) a
+--type Table a = M.Map (V.Vector KeyType) a
 
-data Factor = Factor (V.Vector Int) (Table Double) deriving (Eq, Show)
+--data Factor = Factor (V.Vector Int) (Table Double) deriving (Eq, Show)
+type Table a = M.Map [KeyType] a
+
+data Factor = Factor [Int] (Table Double) deriving (Eq, Show)
 
 -- | Get the list of ids from a factor
-ids :: Factor -> V.Vector Int
+ids :: Factor -> [Int]
 ids (Factor ids _) = ids
 
 -- | Get the table of a factor
 table :: Factor -> Table Double
 table (Factor _ table) = table
 
-
-
 -- | Convert a [([KeyType], a)] to [(Vector Keytype, a)]
 -- TODO: Should be a Fold
-_listKeysToVec :: [([KeyType], a)] -> [(V.Vector KeyType, a)]
+_listKeysToVec :: [([KeyType], a)] -> [([KeyType], a)]
 _listKeysToVec [] = []
-_listKeysToVec ((ks, a):xs) = (V.fromList ks, a) : _listKeysToVec xs
+_listKeysToVec ((ks, a):xs) = (ks, a) : _listKeysToVec xs
+
+-- | Generate all possible boolean vectors of a given size
+boolPermutations :: Int -> [[Bool]]
+boolPermutations 0 = [[]]
+boolPermutations n = let ps = boolPermutations (n - 1)
+                      in union  [True:cs | cs <- ps] [False:cs | cs <- ps]
 
 -- | Create a table from a [([KeyType], Double)]
 createTable :: [([KeyType], a)] -> (Table a)
 createTable ks = M.fromList $ _listKeysToVec ks
 
 createFactor :: [Int] -> [([KeyType], Double)] -> Factor
-createFactor ids ks = Factor (V.fromList ids) $ createTable ks
+createFactor ids ks = Factor (ids) $ createTable ks
 
 -- | Deletes the element at some index from a vector.
 -- TODO: Error Handling if index is invalid?
-deleteAt :: Int -> V.Vector a -> V.Vector a
-deleteAt idx v = let (l, r) = V.splitAt idx v in (V.++) l $  V.tail r
+deleteAt :: Int -> [a] -> [a]
+deleteAt idx v = let (l, r) = splitAt idx v in  l ++  (tail r)
 
 -- | Filter a distribution on some value of some variable
 filterFactor :: Factor -> Int -> KeyType -> Maybe Factor
 filterFactor (Factor ids table) varId val = do
-  index <- V.elemIndex varId ids
-  let filterTable = M.filterWithKey (\k v -> k V.! index == val) table
+  index <- elemIndex varId ids
+  let filterTable = M.filterWithKey (\k v -> k !! index == val) table
   let fixKeys = M.mapKeys (deleteAt index) filterTable
   let fixIndices = deleteAt index ids
   return $ Factor fixIndices fixKeys
@@ -65,6 +73,7 @@ add (Factor ids1 table1) (Factor ids2 table2) = do
       else Nothing
 
 -- | Normalize a factor so that all probabilities sum to 1
+-- TODO: Manage Division by Zero
 normalize :: Factor -> Factor
 normalize (Factor ids table) = Factor ids $ M.map (\v -> v / sum) table where
   sum = foldr (+) 0 table
@@ -77,4 +86,3 @@ marginalize factor varId = do
   filterFalse <- filterFactor factor varId False
   sum <- add filterTrue filterFalse
   return sum
-
