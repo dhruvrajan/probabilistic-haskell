@@ -1,6 +1,5 @@
 module Factor where
 
---import qualified Data.Vector as V
 import qualified Data.Map as M
 import Data.List
 import Data.Maybe
@@ -86,3 +85,80 @@ marginalize factor varId = do
   filterFalse <- filterFactor factor varId False
   sum <- add filterTrue filterFalse
   return sum
+
+
+-- TODO: RE-EVALUATE POINTWISE PRODUCT; BETTER IMPLEMENTATION
+splitPerm :: [Int] -> [Int] -> [Bool] -> ([Bool], [Bool])
+splitPerm f1 f2 ps = (f1Perm, f2Perm) where
+  newKeys = reverse $ sort $ union f1 f2
+  enumPs = zip newKeys ps
+  f1PermPairs = filter (\(nid, p) -> elem nid f1) enumPs
+  f1Perm = map (\(x, y) -> y) f1PermPairs
+
+  f2PermPairs = filter (\(nid, p) -> elem nid f2) enumPs
+  f2Perm = map(\(x, y) -> y) f2PermPairs
+  
+
+pointwiseProduct :: Factor -> Factor -> Factor
+pointwiseProduct f1 f2 = f3 where
+  table1 = table f1
+  table2 = table f2
+  newKeys = reverse $ sort $ union (ids f1) (ids f2)
+  perms =  boolPermutations $ length newKeys
+  pairs = map (\x -> (x, splitPerm (ids f1) (ids f2) x)) perms
+  evalProbs = map (\(x, (f1_v, f2_v)) -> (x, (fromJust $ M.lookup f1_v table1) *
+                                         (fromJust $ M.lookup f2_v table2))) pairs
+
+  table3 = M.fromList evalProbs
+  f3 = Factor newKeys table3
+
+
+-- | TODO: RE-EVALUATE sumOut; BETTER IMPLEMENTATION
+sumOut :: Int -> Factor -> Factor
+sumOut nodeId (Factor vars table)  = normalize $ Factor newVars newValues where
+  targetIdx = fromJust $ elemIndex nodeId vars
+  -- Target is True
+  isTrue = M.filterWithKey (\k _ -> k !! targetIdx == True) table
+  isTrue' = M.mapKeys (\k1 -> deleteAt targetIdx k1) isTrue
+
+  -- Target is False
+  isFalse = M.filterWithKey (\k _ -> k !! targetIdx == False) table
+  isFalse' = M.mapKeys (\k1 -> deleteAt targetIdx k1) isFalse
+
+  -- TODO: Proper Maybe Handling
+  newValues = M.mapWithKey (\k v -> v + (fromJust $ M.lookup k isFalse')) isTrue'
+
+  --newKeys = Map.mapKeys (\k1 -> deleteAt targetIdx k1) newValues
+  newVars = delete nodeId vars
+
+  
+
+-- -- | Compute the pointwise - product of two factors
+-- pointwise :: Factor -> Factor -> Factor
+-- pointwise (Factor ids1 table1) (Factor ids2 table2) = f3 where
+--   newIds = reverse $ sort $ union ids1 ids2
+--   id2idx = zip newIds [1..] -- basis for indices
+--   idx2id = zip [1..] newIds
+
+--   -- find the list of ids for each factor in terms of the new basis
+--   ids1Idx = map (\x -> fromJust $ lookup x id2idx) ids1 -- TODO: assuming just
+--   ids2Idx = map (\x -> fromJust $ lookup x id2idx) ids2 -- TODO: assuming just
+
+--   -- find common / uncommon ids in terms of new basis
+--   commonIdx = reverse $ sort $ intersect ids1Idx ids2Idx
+--   onlyF1Idx = reverse $ sort $ ids1Idx \\ commonIdx
+--   onlyF2Idx = reverse $ sort $ ids2Idx \\ commonIdx
+
+--   -- Get the new table keys
+--   enumNewKeys = [zip x [1..] | x <- boolPermutations $ length newIds]
+--   commons = [filter (\x -> elem x commonIdx) l | l <- enumNewKeys]
+--   onlyF1 = [filter (\x -> elem x onlyF1Idx) l | l <- enumNewKeys]
+--   onlyF2 = [filter (\x -> elem x onlyF2Idx) l | l <- enumNewKeys]
+
+--   f1Query = [f]
+
+
+
+
+
+
