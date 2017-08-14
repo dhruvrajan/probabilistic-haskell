@@ -7,13 +7,25 @@ import qualified Statistics.Distribution as DistLib
 import qualified Statistics.Distribution.Normal as NormalLib
 import GHC.Float
 
-
+-- | Class to represent discrete distributions.  Each discrete
+-- distribution is defined by its probability mass function
+-- (pmf). Additionally, the domains of discrete distributions can be
+-- enumerated.
 class Discrete a where
+  -- Probability Mass Function (PMF)
   pmf :: Eq b => a b -> b -> Double
+
+  -- Enumerate a discrete domain
   domain :: (Eq b) => a b -> [b]
 
+-- | Class to represent continuous distributions. A continuous
+-- distribution is defined by its probability density function (pdf),
+-- and its cumulative distribution function (cdf)
 class Continuous a where
+  -- Probability Density Function (PDF)
   pdf :: (RealFloat b, Fractional b) => a b -> b -> Double
+
+  -- Cumulative Distribution Function (CDF)
   cdf :: (RealFloat b, Fractional b) => a b -> b -> Double
 
 -- Bernoulli Distribution
