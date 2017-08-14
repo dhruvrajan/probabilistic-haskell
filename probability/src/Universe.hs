@@ -21,6 +21,10 @@ data State = State
 initialState :: Int -> State
 initialState i = State {next=i, universe=Map.empty, names=Map.empty, ids=Map.empty}
 
+-- | Build an empty state
+empty :: State
+empty = State {next=0, universe=Map.empty, names=Map.empty, ids=Map.empty}
+
 -- | Apply a function to every node in a universe
 notifyAll :: (Node -> Node) -> Universe -> Universe
 notifyAll = Map.map
@@ -78,34 +82,41 @@ notifyUniverse universe (Node {identity=incoming}) = do
   return childrenNotified
 
 -- | Submit a new node to a universe, and notify the universe appropriately
-submit :: State -> String -> Node -> (Node, State)
-submit state name node = result where
-  n = next state
-  node' = node {identity=n}
-  universe' = Map.insert n node' (universe state)
-  
-  newNames = Map.insert name n $ names state
-  universe'' = notifyUniverse universe' node'
-  newIds = Map.insert n name $ ids state
+-- Returns Nothing if the target node's parents/children are not already in
+-- the universe.
+submit :: State -> String -> Node -> Maybe (Node, State)
+submit state name node = do
+  let n = next state -- next node id
+  let node' = node {identity=n} -- new node
+  -- insert new node into universe
+  let universe' = Map.insert n node' (universe state) 
 
-  state' = fmap (\u -> state {next=n + 1, universe=u, names=newNames, ids=newIds}) universe''
-  result = fromJust $  fmap (\s -> (node', s)) state'
+  let names' = Map.insert name n (names state) -- updated names lookup table
+  let ids' = Map.insert n name (ids state) -- updated ids lookup table
 
-addBernoulli :: State -> String -> Double -> (Node, State)
+  notified <- notifyUniverse universe' node' -- notify universe of incoming node
+  let state' = state {next=n + 1, universe=notified, names=names', ids=ids'} -- construct new state
+  return (node', state') 
+
+addBernoulli :: State -> String -> Double -> Maybe (Node, State)
 addBernoulli state name p = submit state name (createDetachedNode $ Unobserved $ Bernoulli p)
 
--- TODO: Proper Error Handling
-getNodeId :: State -> String -> Int
-getNodeId state name = fromJust $ Map.lookup name (names state)
+getNodeId :: State -> String -> Maybe Int
+getNodeId state name = Map.lookup name (names state)
 
--- TODO: Proper Error Handling
-getNode :: State -> String -> Node
-getNode state name = fromJust $ Map.lookup (getNodeId state name) (universe state)
+getNode :: State -> String -> Maybe Node
+getNode state name = do
+  nodeId <- getNodeId state name
+  Map.lookup nodeId (universe state)
 
--- TODO: Proper Error Handling
-getName :: State -> Int -> String
-getName state n = fromJust $ Map.lookup n (ids state)
+getName :: State -> Int -> Maybe String
+getName state n = Map.lookup n (ids state)
 
-addCPD :: State -> String -> String -> Double -> Double -> (Node, State)
-addCPD state name parent ift iff
-  = submit state name (createNode 0 [getNodeId state parent] [] $ Unobserved $ CPD1 ift iff)
+addCPD1 :: State -> String -> String -> Double -> Double -> Maybe (Node, State)
+addCPD1 state name parent ift iff = do --submit state name node where
+  -- construct CPD1 node
+  parentId <- getNodeId state parent
+  let node = createNode 0 [parentId] [] $ Unobserved $ CPD1 ift iff
+
+  -- add node to state
+  submit state name node
