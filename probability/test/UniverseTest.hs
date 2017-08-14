@@ -3,6 +3,7 @@ module UniverseTest where
 import Universe
 import Test.HUnit
 import Node
+import Data.Maybe
 import qualified Data.Map.Strict as Map
 -- Construct a universe without the 'add' method for testing purposes-- 
 
@@ -24,7 +25,7 @@ s' = s {
 -- Test for notifySelect method
 testNotifySelect = TestCase (assertEqual "parents match" foundParents realParents) where
   -- alter parents of some nodes
-  universe' = notifySelect (universe s') (\x -> x {parents=[2, 4, 6, 8]}) [0, 1]
+  universe' = fromJust $ notifySelect (universe s') (\x -> x {parents=[2, 4, 6, 8]}) [0, 1]
 
   -- retrieve parents of each node
   aps = fmap parents $ Map.lookup 0 universe'
