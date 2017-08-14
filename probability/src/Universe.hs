@@ -36,47 +36,11 @@ notifySelect universe f (n:ns) = do
   -- recursively notify the rest of the nodes
   notifySelect universe' f ns
 
--- | Apply a function to the parents of a particular node
-notifyParents :: Universe -> Int -> Maybe Universe
-notifyParents universe n = do
-  -- retrieve target node, parents
-  node <- Map.lookup n universe
-  let select = parents node
-
-  -- notify function: make target node a child of its parents
-  let notify = \ node -> node {children=n : (children node)}
-
-  -- notify parents
-  notifySelect universe notify select
-
--- | Apply a function to the children of a particular node
--- If the node is not in the universe, returns Nothing
-notifyChildren :: Universe -> Int -> Maybe Universe
-notifyChildren universe n = do
-  -- retrieve target node, children
-  node <- Map.lookup n universe
-  let select = children node
-
-  -- notify function: make target node a parent of its children
-  let notify = \ node -> node {parents=n : (parents node)}
-
-  -- notify children
-  notifySelect universe notify select
-
-
 notifyIncoming :: Universe -> Int -> [Int] -> [Int] -> Maybe Universe
 notifyIncoming universe n ps cs = do
   notifyParents <- notifySelect universe (\p -> p {children=n:(children p)}) ps
   notifyChildren <- notifySelect notifyParents (\c -> c {parents=n:(parents c)}) cs
   return notifyChildren
-
--- | Notify the universe of an incoming node
--- i.e. notify parents & children of target node
-notifyUniverse :: Universe -> Node -> Maybe Universe
-notifyUniverse universe (Node {identity=incoming}) = do
-  parentsNotified <- notifyParents universe incoming
-  childrenNotified <- notifyChildren parentsNotified incoming
-  return childrenNotified
 
 -- | Submit a new node to a universe, and notify the universe appropriately
 -- Returns Nothing if the target node's parents/children are not already in
