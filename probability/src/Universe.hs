@@ -63,6 +63,13 @@ notifyChildren universe n = do
   -- notify children
   notifySelect universe notify select
 
+
+notifyIncoming :: Universe -> Int -> [Int] -> [Int] -> Maybe Universe
+notifyIncoming universe n ps cs = do
+  notifyParents <- notifySelect universe (\p -> p {children=n:(children p)}) ps
+  notifyChildren <- notifySelect notifyParents (\c -> c {parents=n:(parents c)}) cs
+  return notifyChildren
+
 -- | Notify the universe of an incoming node
 -- i.e. notify parents & children of target node
 notifyUniverse :: Universe -> Node -> Maybe Universe
@@ -77,16 +84,20 @@ notifyUniverse universe (Node {identity=incoming}) = do
 submit :: State -> String -> Node -> Maybe (Node, State)
 submit state name node = do
   let n = next state -- next node id
-  let node' = node {identity=n} -- new node
-  -- insert new node into universe
-  let universe' = Map.insert n node' (universe state) 
 
-  let names' = Map.insert name n (names state) -- updated names lookup table
-  let ids' = Map.insert n name (ids state) -- updated ids lookup table
+  -- notify universe of incoming node
+  notified <- notifyIncoming (universe state) n (parents node) (children node)
+  
+  -- insert new node into notified universe
+  let updatedUniverse = Map.insert n node notified
 
-  notified <- notifyUniverse universe' node' -- notify universe of incoming node
-  let state' = state {next=n + 1, universe=notified, names=names', ids=ids'} -- construct new state
-  return (node', state') 
+  let newNode = node {identity=n} -- new node
+  let namesTable = Map.insert name n (names state) -- updated names lookup table
+  let idsTable = Map.insert n name (ids state) -- updated ids lookup table
+
+  -- construct new state
+  let newState = state {next=n + 1, universe=updatedUniverse, names=namesTable, ids=idsTable}
+  return (newNode, newState)
 
 getNodeId :: State -> String -> Maybe Int
 getNodeId state name = Map.lookup name (names state)
