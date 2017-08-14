@@ -15,12 +15,6 @@ data State = State
     ids :: Map.Map Int String
   } deriving (Show)
 
-
--- | Build an initial state from a starting Node id
--- Initializes maps to the empty map
-initialState :: Int -> State
-initialState i = State {next=i, universe=Map.empty, names=Map.empty, ids=Map.empty}
-
 -- | Build an empty state
 empty :: State
 empty = State {next=0, universe=Map.empty, names=Map.empty, ids=Map.empty}
@@ -40,9 +34,7 @@ notifySelect universe f (n:ns) = do
   let universe' = Map.insert n (f node) universe
 
   -- recursively notify the rest of the nodes
-  result <- notifySelect universe' f ns
- 
-  return result
+  notifySelect universe' f ns
 
 -- | Apply a function to the parents of a particular node
 notifyParents :: Universe -> Int -> Maybe Universe
@@ -55,8 +47,7 @@ notifyParents universe n = do
   let notify = \ node -> node {children=n : (children node)}
 
   -- notify parents
-  notified <- notifySelect universe notify select
-  return notified
+  notifySelect universe notify select
 
 -- | Apply a function to the children of a particular node
 -- If the node is not in the universe, returns Nothing
@@ -70,8 +61,7 @@ notifyChildren universe n = do
   let notify = \ node -> node {parents=n : (parents node)}
 
   -- notify children
-  notified <- notifySelect universe notify select
-  return notified
+  notifySelect universe notify select
 
 -- | Notify the universe of an incoming node
 -- i.e. notify parents & children of target node
@@ -98,9 +88,6 @@ submit state name node = do
   let state' = state {next=n + 1, universe=notified, names=names', ids=ids'} -- construct new state
   return (node', state') 
 
-addBernoulli :: State -> String -> Double -> Maybe (Node, State)
-addBernoulli state name p = submit state name (createDetachedNode $ Unobserved $ Bernoulli p)
-
 getNodeId :: State -> String -> Maybe Int
 getNodeId state name = Map.lookup name (names state)
 
@@ -112,6 +99,11 @@ getNode state name = do
 getName :: State -> Int -> Maybe String
 getName state n = Map.lookup n (ids state)
 
+-- | Add a bernoulli element to a universe
+addBernoulli :: State -> String -> Double -> Maybe (Node, State)
+addBernoulli state name p = submit state name (createDetachedNode $ Unobserved $ Bernoulli p)
+
+-- | Add a CPD1 element to a universe
 addCPD1 :: State -> String -> String -> Double -> Double -> Maybe (Node, State)
 addCPD1 state name parent ift iff = do --submit state name node where
   -- construct CPD1 node
