@@ -63,16 +63,19 @@ submit state name node = do
   let newState = state {next=n + 1, universe=updatedUniverse, names=namesTable, ids=idsTable}
   return (newNode, newState)
 
-getNodeId :: State -> String -> Maybe Int
-getNodeId state name = Map.lookup name (names state)
+-- | Get the id of a node given its name
+getId :: State -> String -> Maybe Int
+getId state name = Map.lookup name (names state)
 
-getNode :: State -> String -> Maybe Node
-getNode state name = do
-  nodeId <- getNodeId state name
-  Map.lookup nodeId (universe state)
-
+-- | Get the name of a node given its id
 getName :: State -> Int -> Maybe String
 getName state n = Map.lookup n (ids state)
+
+-- | Retrieve a node given its name
+getNode :: State -> String -> Maybe Node
+getNode state name = do
+  nodeId <- getId state name
+  Map.lookup nodeId (universe state)
 
 -- | Add a bernoulli element to a universe
 addBernoulli :: State -> String -> Double -> Maybe (Node, State)
@@ -82,7 +85,7 @@ addBernoulli state name p = submit state name (createDetachedNode $ Unobserved $
 addCPD1 :: State -> String -> String -> Double -> Double -> Maybe (Node, State)
 addCPD1 state name parent ift iff = do --submit state name node where
   -- construct CPD1 node
-  parentId <- getNodeId state parent
+  parentId <- getId state parent
   let node = createNode 0 [parentId] [] $ Unobserved $ CPD1 ift iff
 
   -- add node to state
