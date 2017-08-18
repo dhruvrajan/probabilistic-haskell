@@ -1,171 +1,154 @@
-module VariableElimination where
+module VariableElimination (getFactor) where 
 
 import Node
 import Universe
-import Numeric.LinearAlgebra.HMatrix as HM
 import Data.Maybe
-import qualified Data.Map.Strict as Map
+import qualified Data.Map.Strict as M
 import Data.List
+import Control.Monad (join)
 import Debug.Trace
-
--- | Factor Data Structure, representing a discrete, finite CPD
-data Factor = Factor [Int] (Map.Map [Bool] Double) deriving (Show, Eq)
-
--- Accessor methods for Factor
-
-keys :: Factor -> [Int]
-keys (Factor l m) = l
-
-table :: Factor -> (Map.Map [Bool] Double)
-table (Factor l m) = m
-
--- | Generate all possible boolean vectors of a given size
-boolPermutations :: Int -> [[Bool]]
-boolPermutations 0 = [[]]
-boolPermutations n = let ps = boolPermutations (n - 1)
-                      in union  [True:cs | cs <- ps] [False:cs | cs <- ps]
+import Factor
 
 -- | Generate the local factor for a specific node
-getFactor :: State -> String -> Factor
-getFactor state name = factor where
-  nodeId = getNodeId state name
-  --node = getNode state name
+getFactor :: State -> Int -> Maybe Factor
+getFactor state nodeId = do
+  --nodeId < getId state name
+  name <- getName state nodeId
+  node <- getNode state name
 
-  -- TODO: FIX BUG 
-  -- parentNodes = parents node
-  -- parentKeys = boolPermutations $ length parentNodes
-  -- nodeKeys = [True, False]
+  let factorVars = reverse $ sort $ nodeId : (parents $ node)
+  let keys = boolPermutations $ length factorVars
+  let probs = map (localProbability node) keys
+  let joint = Factor factorVars (M.fromList (zip keys probs))
+
+  -- if node is observed, then filter the full joint distribution
+  case node of
+    Node {payload=Unobserved _} -> Just joint
+    Node {payload=Observed _ val, identity=i} ->
+      if (length $ Factor.ids joint) == 1 then filterZero joint i val else filterFactor joint i val
+
+
+test = do
+  let s0 = empty
+  (a, s1) <- addBernoulli s0 "a" 0.4 $ Just True
+  (b, s2) <- addCPD1 s1 "b" "a" 0.2 0.3 $ Nothing
+
+  fa <- getFactor s2 0
+  fb <- getFactor s2 1
+
+  -- -- probability that a is true
+  prod <- (pointwiseProduct fa fb)
+
+  return (fa, fb, s2)
+
+-- eliminate :: State -> [Int] -> Int -> Maybe Factor
+-- eliminate _ [] _ = Just nullFactor
+-- eliminate state (v:vs) t = do
+--   name <- getName state v
+--   node <- getNode state name
+--   let factor = getFactor state v
+--   adjusted <- if observed node
+--               then factor
+--               else
+--                 if v == t
+--                 then factor
+--                 else factor >>= marginalize v
   
-  -- ks = [(pkeys, nkey) | pkeys <- parentKeys, nkey <- nodeKeys]
-  -- probs = map (\(ps, n) -> localProbability node ps n) ks
+  -- adjusted <- case node of
+  --             Node {payload=Observed _ val} -> factor
+  --             Node {payload=Unobserved _} -> if v == t
+  --                                            then factor
+  --                                            else factor >>= marginalize v
+  -- result <- if vs == [] then Just adjusted
+  --           else eliminate state vs t >>= pointwiseProduct adjusted
+  --return result
 
-  -- factorKeys  = map (\(ps, n) -> reverse $ sort $ ps ++ [n]) ks
-  -- factorVars = reverse $ sort $ nodeId : parentNodes
-  -- factor = Factor factorVars (Map.fromList (zip factorKeys probs))
+-- eliminate :: State -> [Int] -> Int -> [Maybe Factor]
+-- eliminate _  [] _ = []
+-- eliminate state (v:vs) t = do
+--   name <- getName state v
+--   node <- getNode state name
+
+--   let factor = getFactor state v
+
+--   let adjusted = if observed node
+--               then factor
+--               else
+--                 if v == t
+--                 then factor
+--                 else factor >>= marginalize v
+
+  -- result <- if vs == [] then Just adjusted
+  --           else eliminate state vs (adjusted:fs) t >>= pointwiseProduct adjusted
+
+prod :: [Maybe Factor] -> Maybe Factor
+prod [] = Just nullFactor
+prod (f:fs) = do
+  factor <- f
+  remaining <- prod fs
+
+  if fs == [] then f else pointwiseProduct factor $ remaining
+
+
+
+eliminate :: State -> [Int] -> [Maybe Factor] -> Int -> Maybe [Maybe Factor]
+eliminate _ [] fs _ = Just fs
+eliminate state (v:vs) fs t = do
+  name <- getName state v
+  node <- getNode state name
   
-  factorVars = reverse $ sort $ nodeId : (parents $ getNode state name)
-  keys = boolPermutations $ length factorVars
-  node = getNode state name
-  probs = map (localProbability node) keys
-  factor = Factor factorVars (Map.fromList (zip keys probs))
-
-sumTable :: (Map.Map [Bool] Double) -> Double
-sumTable map = sum $ Map.elems map
-
-normalizeFactor :: Factor -> Factor
-normalizeFactor (Factor vars table) = Factor vars table' where
-  sum = sumTable table
-  table' = Map.map (\k -> k / sum) table
-
-deleteAt :: Int -> [a] -> [a]
-deleteAt n l = (init l1) ++ l2 where
-  (l1, l2) = splitAt (n + 1) l
-
-projectFactor :: Factor -> Int -> Bool -> Factor
-projectFactor (Factor keys table) target bool = Factor keys newTable where
-  targetIndex = fromJust $ elemIndex target keys
-  newTable = Map.filterWithKey (\k _ -> k !! targetIndex == bool) table
-  
-
---projectFactor (Factor keys table)  bool
---  = Factor keys (Map.filterWithKey (\k _ -> last k == bool) table)
-
-
-splitPerm :: [Int] -> [Int] -> [Bool] -> ([Bool], [Bool])
-splitPerm f1 f2 ps = (f1Perm, f2Perm) where
-  newKeys = reverse $ sort $ union f1 f2
-  enumPs = zip newKeys ps
-  f1PermPairs = filter (\(nid, p) -> elem nid f1) enumPs
-  f1Perm = map (\(x, y) -> y) f1PermPairs
-
-  f2PermPairs = filter (\(nid, p) -> elem nid f2) enumPs
-  f2Perm = map(\(x, y) -> y) f2PermPairs
-  
-
-pointwiseProduct :: Factor -> Factor -> Factor
-pointwiseProduct f1 f2 = f3 where
-  table1 = table f1
-  table2 = table f2
-  newKeys = reverse $ sort $ union (keys f1) (keys f2)
-  perms =  boolPermutations $ length newKeys
-  pairs = map ( \x -> (x, splitPerm (keys f1) (keys f2) x)) perms
-  evalProbs = map (\(x, (f1_v, f2_v)) -> (x, (fromJust $ Map.lookup f1_v table1) *
-                                         (fromJust $ Map.lookup f2_v table2))) pairs
-
-  table3 = Map.fromList evalProbs
-  f3 = Factor newKeys table3
+  let factor = getFactor state v
+  let fs' = (factor:fs)
+  let fs'' = if (observed node)
+             then let result =  (map (\f -> f >>= (\ f' -> filterFactor f' v (fromJust $ observation node))) (factor:fs))
+                  in traceShow result result
+             else if v == t
+                  then fs'
+                  else map (\f -> f >>= marginalize v) fs'
+  -- result <- traceShow (v, fs'') $ if vs == [] then prod fs''
+  --           else eliminate state vs fs'' t
+  result <- if vs == [] then Just fs'' else eliminate state vs fs'' t
+  return $ result
   
   
 
-f1 = Factor [0] $ Map.fromList [([True], 0.2), ([False], 0.8)]
-f2 = Factor [1, 0] $ Map.fromList [([True, True], 0.3), ([True, False], 0.4),
-                                   ([False, True], 0.7), ([False, False], 0.6)]
 
-table1 = table f1
-table2 = table f2
-newKeys = reverse $ sort $ union (keys f1) (keys f2)
-perms = boolPermutations $ length newKeys
-pairs = map ( \x -> (x, splitPerm (keys f1) (keys f2) x)) perms
-evalProbs = map (\(x, (f1_v, f2_v)) -> (x, (fromJust $ Map.lookup f1_v table1) *
-                                         (fromJust $ Map.lookup f2_v table2))) pairs
+-- | Variable Elimination Algorithm
+-- Returns a distribution over the target variable
+elimination :: State -> String -> Maybe Factor
+elimination state target = do
+  let order = reverse $ take (next state) [0..]
+  targetId <- getId state target
 
-table3 = Map.fromList evalProbs
-f3 = Factor newKeys table3
-
-
-
+  normalize <$> (prod $ fromJust $ eliminate state order [] targetId)
   
-sumOut :: Int -> Factor -> Factor
-sumOut nodeId (Factor vars table)  = normalizeFactor $ Factor newVars newValues where
-  targetIdx = fromJust $ elemIndex nodeId vars
-  -- Target is True
-  isTrue = Map.filterWithKey (\k _ -> k !! targetIdx == True) table
-  isTrue' = Map.mapKeys (\k1 -> deleteAt targetIdx k1) isTrue
-
-  -- Target is False
-  isFalse = Map.filterWithKey (\k _ -> k !! targetIdx == False) table
-  isFalse' = Map.mapKeys (\k1 -> deleteAt targetIdx k1) isFalse
-
-  -- TODO: Proper Maybe Handling
-  newValues = Map.mapWithKey (\k v -> v + (fromJust $ Map.lookup k isFalse')) isTrue'
-
-  --newKeys = Map.mapKeys (\k1 -> deleteAt targetIdx k1) newValues
-  newVars = delete nodeId vars
-
-
--- s = initialState 0
--- (a, s') = addBernoulli s "a" 0.3
--- (b, s'') = addCPD s' "b" "a" 0.4 0.5
-
-
--- --factor = getFactor s'' "b"
--- factor= Factor [2, 1, 0] $ Map.fromList [([True, True, True], 0.06),
---                                         ([True, True, False], 0.18),
---                                         ([True, False, True], 0.42),
---                                         ([True, False, False], 0.06),
---                                         ([False, True, True], 0.24),
---                                         ([False, True, False], 0.72),
---                                         ([False, False, True], 0.28),
---                                         ([False, False, False], 0.04)]
--- nodeId = 0
-
--- vars = keys factor
--- t = table factor
-
--- targetIdx = fromJust $ elemIndex nodeId vars
---  -- Target is True
--- isTrue = Map.filterWithKey (\k _ -> k !! targetIdx == True) t
--- isTrue' = Map.mapKeys (\k1 -> deleteAt targetIdx k1) isTrue
-
--- -- Target is False
--- isFalse = Map.filterWithKey (\k _ -> k !! targetIdx == False) t
--- isFalse' = Map.mapKeys (\k1 -> deleteAt targetIdx k1) isFalse
-
--- -- TODO: Proper Maybe Handling
--- newValues = Map.mapWithKey (\k v -> v + (fromJust $ Map.lookup k isFalse')) isTrue'
-
--- newVars = delete nodeId vars
-
--- normalizedValues = normalizeFactor $ Factor newVars newValues
-
   
+
+
+-- sumOutIfNecessary target (node, factor) = case node of
+--                                      Node {payload= Unobserved _, identity=i} -> if i == (identity target)
+--                                                                                  then Just factor
+--                                                                                  else marginalize i factor
+--                                      Node {payload=Observed _ val} -> Just factor
+
+-- accumProduct factors = foldl (\x y -> join $ pointwiseProduct <$> x <*> y) (head factors) (tail factors)
+
+-- elimination :: State -> String -> Maybe Factor
+-- elimination state varName = do
+--   let targetId = getId state varName
+--   let targetNode = getNode state varName
+--   let order = take (next state) [0..]
+
+--   let names = map (getName state) order
+--   let nodes = map (\x -> join $ getNode state <$> x) names
+
+--   let factors =  map (\x -> x >>= getFactor state) names
+--   let pairs = map (\(Just x, Just y) -> sumOutIfNecessary (fromJust targetNode) (x, y)) $ zip nodes factors
+
+--     -- calculate factor product
+--   let product = accumProduct factors
+
+--   normalize <$> product 
+  
+
+

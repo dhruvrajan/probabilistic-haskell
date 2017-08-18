@@ -2,6 +2,7 @@ module Factor where
 
 import qualified Data.Map as M
 import Data.List
+import Control.Monad (join)
 import Data.Maybe
 import Debug.Trace
 
@@ -9,9 +10,6 @@ type KeyType = Bool -- just dealing with bools for now
 
 -- | A lookup table. Values are of type a, and
 -- the input is a vector of KeyType
---type Table a = M.Map (V.Vector KeyType) a
-
---data Factor = Factor (V.Vector Int) (Table Double) deriving (Eq, Show)
 type Table a = M.Map [KeyType] a
 
 data Factor = Factor [Int] (Table Double) deriving (Eq, Show)
@@ -19,6 +17,7 @@ data Factor = Factor [Int] (Table Double) deriving (Eq, Show)
 -- | Get the list of ids from a factor
 ids :: Factor -> [Int]
 ids (Factor ids _) = ids
+
 
 -- | Get the table of a factor
 table :: Factor -> Table Double
@@ -43,6 +42,9 @@ createTable ks = M.fromList $ _listKeysToVec ks
 createFactor :: [Int] -> [([KeyType], Double)] -> Factor
 createFactor ids ks = Factor (ids) $ createTable ks
 
+nullFactor :: Factor
+nullFactor = Factor [] M.empty
+
 -- | Deletes the element at some index from a vector.
 -- TODO: Error Handling if index is invalid?
 deleteAt :: Int -> [a] -> [a]
@@ -56,6 +58,17 @@ filterFactor (Factor ids table) varId val = do
   let fixKeys = M.mapKeys (deleteAt index) filterTable
   let fixIndices = deleteAt index ids
   return $ Factor fixIndices fixKeys
+
+
+-- | Filter a distribution on some value of some variable
+filterZero :: Factor -> Int -> KeyType -> Maybe Factor
+filterZero (Factor ids table) varId val = do
+  index <- elemIndex varId ids
+  --let filterTable = M.filterWithKey (\k v -> k !! index == val) table
+  let mapped = M.mapWithKey (\k v -> if (k !! index == val) then v else 0.0) table
+  --let fixKeys = M.mapKeys (deleteAt index) filterTable
+  --let fixIndices = deleteAt index ids
+  return $ Factor ids mapped
 
 -- | Add two factors
 add :: Factor -> Factor -> Maybe Factor
@@ -79,17 +92,20 @@ normalize (Factor ids table) = Factor ids $ M.map (\v -> v / sum) table where
 
 -- | Compute the marginal distribution for some variable
 -- by setting it equal to some value 
-marginalize :: Factor -> Int -> Maybe Factor
-marginalize factor varId = do
-  filterTrue <- filterFactor factor varId True
-  filterFalse <- filterFactor factor varId False
-  sum <- add filterTrue filterFalse
-  return sum
+marginalize :: Int -> Factor -> Maybe Factor
+marginalize varId factor = do
+  let filterTrue = filterFactor factor varId True
+  let filterFalse = filterFactor factor varId False
+
+  let result = join $ add <$> filterTrue <*> filterFalse
+  case result of
+    Nothing -> return factor
+    Just x -> result
 
 
 -- TODO: RE-EVALUATE POINTWISE PRODUCT; BETTER IMPLEMENTATION
 splitPerm :: [Int] -> [Int] -> [Bool] -> ([Bool], [Bool])
-splitPerm f1 f2 ps = (f1Perm, f2Perm) where
+splitPerm f1 f2 ps = (reverse f1Perm, reverse f2Perm) where
   newKeys = reverse $ sort $ union f1 f2
   enumPs = zip newKeys ps
   f1PermPairs = filter (\(nid, p) -> elem nid f1) enumPs
@@ -99,63 +115,48 @@ splitPerm f1 f2 ps = (f1Perm, f2Perm) where
   f2Perm = map(\(x, y) -> y) f2PermPairs
   
 
-pointwiseProduct :: Factor -> Factor -> Factor
+pointwiseProduct :: Factor -> Factor -> Maybe Factor
 pointwiseProduct f1 f2 = f3 where
   table1 = table f1
   table2 = table f2
   newKeys = reverse $ sort $ union (ids f1) (ids f2)
-  perms =  boolPermutations $ length newKeys
+  perms = boolPermutations $ length newKeys
   pairs = map (\x -> (x, splitPerm (ids f1) (ids f2) x)) perms
-  evalProbs = map (\(x, (f1_v, f2_v)) -> (x, (fromJust $ M.lookup f1_v table1) *
-                                         (fromJust $ M.lookup f2_v table2))) pairs
-
+  evalProbs = map (\(x, (f1_v, f2_v)) -> (x, (fromJust $ M.lookup (reverse f1_v) table1) *
+                                         (fromJust $ M.lookup (reverse f2_v) table2))) pairs
+  
   table3 = M.fromList evalProbs
-  f3 = Factor newKeys table3
+  
+  f3 = Just $ Factor newKeys table3
 
 
 -- | TODO: RE-EVALUATE sumOut; BETTER IMPLEMENTATION
-sumOut :: Int -> Factor -> Factor
-sumOut nodeId (Factor vars table)  = normalize $ Factor newVars newValues where
-  targetIdx = fromJust $ elemIndex nodeId vars
-  -- Target is True
-  isTrue = M.filterWithKey (\k _ -> k !! targetIdx == True) table
-  isTrue' = M.mapKeys (\k1 -> deleteAt targetIdx k1) isTrue
+-- sumOut :: Int -> Factor -> Maybe Factor
+-- sumOut nodeId factor = do
+--   trueFilter <- filterFactor factor nodeId True
+--   falseFilter <- filterFactor factor nodeId False
 
-  -- Target is False
-  isFalse = M.filterWithKey (\k _ -> k !! targetIdx == False) table
-  isFalse' = M.mapKeys (\k1 -> deleteAt targetIdx k1) isFalse
-
-  -- TODO: Proper Maybe Handling
-  newValues = M.mapWithKey (\k v -> v + (fromJust $ M.lookup k isFalse')) isTrue'
-
-  --newKeys = Map.mapKeys (\k1 -> deleteAt targetIdx k1) newValues
-  newVars = delete nodeId vars
-
+--   normalize <$> add trueFilter falseFilter
   
 
--- -- | Compute the pointwise - product of two factors
--- pointwise :: Factor -> Factor -> Factor
--- pointwise (Factor ids1 table1) (Factor ids2 table2) = f3 where
---   newIds = reverse $ sort $ union ids1 ids2
---   id2idx = zip newIds [1..] -- basis for indices
---   idx2id = zip [1..] newIds
+-- sumOut :: Int -> Factor -> Factor
+-- sumOut nodeId (Factor vars table)  = normalize $ Factor newVars newValues where
+--   targetIdx = fromJust $ elemIndex nodeId vars
+--   -- Target is True
+--   isTrue = M.filterWithKey (\k _ -> k !! targetIdx == True) table
+--   isTrue' = M.mapKeys (\k1 -> deleteAt targetIdx k1) isTrue
 
---   -- find the list of ids for each factor in terms of the new basis
---   ids1Idx = map (\x -> fromJust $ lookup x id2idx) ids1 -- TODO: assuming just
---   ids2Idx = map (\x -> fromJust $ lookup x id2idx) ids2 -- TODO: assuming just
+--   -- Target is False
+--   isFalse = M.filterWithKey (\k _ -> k !! targetIdx == False) table
+--   isFalse' = M.mapKeys (\k1 -> deleteAt targetIdx k1) isFalse
 
---   -- find common / uncommon ids in terms of new basis
---   commonIdx = reverse $ sort $ intersect ids1Idx ids2Idx
---   onlyF1Idx = reverse $ sort $ ids1Idx \\ commonIdx
---   onlyF2Idx = reverse $ sort $ ids2Idx \\ commonIdx
+--   -- TODO: Proper Maybe Handling
+--   newValues = M.mapWithKey (\k v -> v + (fromJust $ M.lookup k isFalse')) isTrue'
 
---   -- Get the new table keys
---   enumNewKeys = [zip x [1..] | x <- boolPermutations $ length newIds]
---   commons = [filter (\x -> elem x commonIdx) l | l <- enumNewKeys]
---   onlyF1 = [filter (\x -> elem x onlyF1Idx) l | l <- enumNewKeys]
---   onlyF2 = [filter (\x -> elem x onlyF2Idx) l | l <- enumNewKeys]
+--   --newKeys = Map.mapKeys (\k1 -> deleteAt targetIdx k1) newValues
+--   newVars = delete nodeId vars
 
---   f1Query = [f]
+
 
 
 

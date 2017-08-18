@@ -14,6 +14,16 @@ data Node = Node
     payload :: Payload
   } deriving (Show)
 
+
+observed :: Node -> Bool
+observed Node {payload=Observed _ _} = True
+observed Node {payload=Unobserved _} = False
+
+observation :: Node -> Maybe Bool
+observation Node {payload=Observed _ val} = Just val
+observation Node {payload=Unobserved _} = Nothing
+
+
 createNode :: Int -> [Int] -> [Int] -> Payload -> Node
 createNode = Node
 
@@ -27,12 +37,15 @@ localProbability node vals
       Node{payload=Unobserved (Bernoulli p)} -> if last vals then p else 1-p
       Node{payload=Observed (Bernoulli p) val} -> if last vals then p else 1-p
       
-      Node{payload=Unobserved (CPD1 ift iff)} -> if vals !! 0 then
-                                                   if last vals then ift else 1-ift
+      Node{payload=Unobserved (CPD1 ift iff)} -> if (last vals) then
+                                                   if (vals !! 0) then ift else 1-ift
                                                  else
-                                                   if last vals then iff else 1 - iff
-      Node{payload=Observed (CPD1 ift iff) val} -> if vals !! 0 then
-                                                   if last vals then ift else 1-ift
+                                                   if (vals !! 0) then iff else 1 - iff
+      Node{payload=Observed (CPD1 ift iff) val} -> if (last vals) then
+                                                   if (vals !! 0) then ift else 1-ift
                                                  else
-                                                   if last vals then iff else 1 - iff                                             
-                                                   
+                                                   if (vals !! 0) then iff else 1 - iff                                             
+      -- Node{payload=Unobserved (CPD1 ift iff)} -> if vals !! 0 then
+      --                                              if last vals then ift else 1-ift
+      --                                            else
+      --                                              if last vals then iff else 1 - iff
