@@ -1,13 +1,16 @@
 module VariableEliminationTest where
 
-import Test.HUnit
 import Node
 import Universe
-import qualified Data.Map.Strict as Map
+import Factor
 import VariableElimination
-import Data.List
 
-s = initialState 0
+import Test.HUnit
+import Data.List
+import Data.Maybe
+import qualified Data.Map.Strict as Map
+
+s = empty
 
 -- create nodes
 a = createNode 0 [] [1] (Unobserved $ Bernoulli 0.2)
@@ -19,7 +22,7 @@ s' = s {
         next=3,
         universe=Map.fromList [(0, a), (1, b), (2, c)],
         names=Map.fromList [("a", 0), ("b", 1), ("c", 2)],
-        ids=Map.fromList [(0, "a"), (1, "b"), (2, "c"), (3, "d")]
+        Universe.ids=Map.fromList [(0, "a"), (1, "b"), (2, "c"), (3, "d")]
        }
 
 
@@ -36,7 +39,6 @@ tf2 = Factor [2, 1] $ Map.fromList [([True, True], 0.2),
 -- Burglary Network from Russel Norvig Book
 
 
-
 -- Testing boolean permutations method
 testBoolPermutations = TestCase (assertEqual "boolean permutations" real vals) where
   perms = boolPermutations 5
@@ -49,8 +51,8 @@ testGetFactor = TestCase (assertEqual "factors from graph" real vals) where
   fb = getFactor s' "b"
   fc = getFactor s' "c"
 
-  vals = (fa, fb, fc)
-  real = (Factor [0] $ Map.fromList [([True], 0.2), ([False], 0.8)],
+  vals = [fa, fb, fc]
+  real = map Just  [Factor [0] $ Map.fromList [([True], 0.2), ([False], 0.8)],
           Factor [1, 0] $ Map.fromList [([True, True], 0.3),
                                         ([True, False], 0.7),
                                         ([False, True], 0.4),
@@ -58,14 +60,14 @@ testGetFactor = TestCase (assertEqual "factors from graph" real vals) where
            Factor [2, 1] $ Map.fromList [([True, True], 0.65),
                                          ([True, False], 1 - 0.65),
                                          ([False, True], 0.84),
-                                         ([False, False], 1-0.84)])
+                                         ([False, False], 1-0.84)]]
 
 testPointwiseProduct = TestCase (assertEqual "pointwise product of factors" real vals) where
 
   --- from example above
-  fa = getFactor s' "a"
-  fb = getFactor s' "b"
-  fc = getFactor s' "c"
+  fa = fromJust $ getFactor s' "a"
+  fb = fromJust $ getFactor s' "b"
+  fc = fromJust $ getFactor s' "c"
 
   p1 = pointwiseProduct fa fb
   r1 = Factor [1, 0] $ Map.fromList [([True, True], 0.3 * 0.2),
@@ -124,7 +126,7 @@ testSumOut = TestCase (assertEqual "sum out a variable" real vals) where
   p3 = pointwiseProduct f1 f2 -- this is verified to be correct in testPointwiseProduct
 
   s1 = sumOut 0 p3
-  r1 = normalizeFactor $ Factor [2, 1] $ Map.fromList [([True, True], 0.24),
+  r1 = normalize $ Factor [2, 1] $ Map.fromList [([True, True], 0.24),
                                      ([True, False], 0.48),
                                      ([False, True], 0.96),
                                      ([False, False], 0.32)]

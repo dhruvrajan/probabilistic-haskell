@@ -7,7 +7,7 @@ import Data.Maybe
 import qualified Data.Map.Strict as Map
 -- Construct a universe without the 'add' method for testing purposes-- 
 
-s = initialState 0
+s = empty
 
 -- create nodes
 a = createNode 0 [] [1] (Unobserved $ Bernoulli 0.2)
