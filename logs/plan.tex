@@ -1,4 +1,4 @@
-% Created 2017-06-19 Mon 23:49
+% Created 2017-08-21 Mon 17:29
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -64,20 +64,31 @@ Atomic elements can be combined to form compound elements. The
 simplest method for combining them is the \texttt{If} construct, which
 allows for slightly complex conditioning on distributions. There
 are also the \texttt{Apply} and \texttt{Chain}
-\subsection{{\bfseries\sffamily TODO} Representing Distributions}
+\subsection{{\bfseries\sffamily DONE} Representing Distributions}
 \label{sec-1-4}
-I've tried to take the core ideas in from the Figaro language, and express
-them in Haskell. This includes, (1) Representation of Elements / Random Variables,
-(2) Ability to observe Random Variables (3) Ability to use inference to infer
-probability distributions, given observations.
+A \textbf{probability distribution} is defined by a function which
+distributes the range $[0, 1]$ over some domain. When such a
+function is defined over a continous domain, it defines a
+\emph{continuous} probability distribution; when it is defined over a
+discrete domain, it defines a \emph{discrete} probability
+distribution. A similar distinction is made between distributions
+over \emph{finite} and \emph{infinite} domains. The \texttt{Continuous} and
+\texttt{Discrete} typeclasses capture these definitions. 
+\subsubsection{Continuous}
+\label{sec-1-4-1}
+A continuous distribution is defined by its \texttt{pdf} (Probability
+Density Function) and \texttt{cdf} (Cumulative Distribution Function).
+\subsubsection{Discrete}
+\label{sec-1-4-2}
+A discrete distribution is defined by its \texttt{pmf} (Probability
+Mass Function). Additionally, the \texttt{Discrete} typeclass includes
+a \texttt{domain} function to capture the notion that any discrete
+domain is enumerable (though not necessarily finite).
 
-I've tried to separate the complexity of combining random variables from
-the representation of distributions. Thus, a distribution is just a function,
-mapping some values of some type $a$ to probabilities (\s{Double}). I have yet
-to integrate the standard library of distributions from the statistics library.
-\begin{center}
-\texttt{type Distribution a = a -> Double}
-\end{center}
+Thus, any parameterized distribution is implemented as a datatype
+(for instance, =data Bernoulli a = Bernoulli Double a a). Such
+a datatype is made an instance of the relevant typeclasses.
+
 
 \subsection{{\bfseries\sffamily TODO} Representing Atomic Elements}
 \label{sec-1-5}
@@ -93,7 +104,7 @@ values.
 Thus, observations can be performed on atomic elements simply by
 changing this attribute.
 
-\subsection{{\bfseries\sffamily DONE} Creating Compound Elements}
+\subsection{{\bfseries\sffamily TODO} Creating Compound Elements}
 \label{sec-1-6}
 The \texttt{Element} datatype has separate recursive type constructors for creating
  compound elements from other elements.

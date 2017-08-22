@@ -1,4 +1,3 @@
-
 * Primitive Constructs and Types
 *** Primitive Types (Figaro)
     In Figaro, every data structure is an /element/. Every element
@@ -29,19 +28,29 @@
     simplest method for combining them is the =If= construct, which
     allows for slightly complex conditioning on distributions. There
     are also the =Apply= and =Chain=
-*** TODO Representing Distributions
-    I've tried to take the core ideas in from the Figaro language, and express
-    them in Haskell. This includes, (1) Representation of Elements / Random Variables,
-    (2) Ability to observe Random Variables (3) Ability to use inference to infer
-    probability distributions, given observations.
+*** DONE Representing Distributions
+    CLOSED: [2017-08-21 Mon 17:27]
+    A *probability distribution* is defined by a function which
+    distributes the range $[0, 1]$ over some domain. When such a
+    function is defined over a continous domain, it defines a
+    /continuous/ probability distribution; when it is defined over a
+    discrete domain, it defines a /discrete/ probability
+    distribution. A similar distinction is made between distributions
+    over /finite/ and /infinite/ domains. The =Continuous= and
+    =Discrete= typeclasses capture these definitions. 
+***** Continuous
+      A continuous distribution is defined by its =pdf= (Probability
+      Density Function) and =cdf= (Cumulative Distribution Function).
+***** Discrete
+      A discrete distribution is defined by its =pmf= (Probability
+      Mass Function). Additionally, the =Discrete= typeclass includes
+      a =domain= function to capture the notion that any discrete
+      domain is enumerable (though not necessarily finite).
 
-    I've tried to separate the complexity of combining random variables from
-    the representation of distributions. Thus, a distribution is just a function,
-    mapping some values of some type $a$ to probabilities (\s{Double}). I have yet
-    to integrate the standard library of distributions from the statistics library.
-    #+BEGIN_CENTER
-    =type Distribution a = a -> Double=
-    #+END_CENTER
+    Thus, any parameterized distribution is implemented as a datatype
+    (for instance, =data Bernoulli a = Bernoulli Double a a). Such
+    a datatype is made an instance of the relevant typeclasses.
+      
 
 *** TODO Representing Atomic Elements
     There is an Element type for representing the structure which correspond
