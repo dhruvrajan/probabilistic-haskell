@@ -5,6 +5,7 @@ import qualified Data.Map.Strict as Map
 import qualified Data.Bimap as BM
 import Data.Maybe
 
+-- a collection of nodes
 type Universe = Map.Map Int Node
 
 data State = State
@@ -36,6 +37,8 @@ notifySelect universe f (n:ns) = do
   -- recursively notify the rest of the nodes
   notifySelect universe' f ns
 
+-- | Notify a universe of an incoming node, given its id,
+-- a list of parents, and a list of children
 notifyIncoming :: Universe -> Int -> [Int] -> [Int] -> Maybe Universe
 notifyIncoming universe n ps cs = do
   notifyParents <- notifySelect universe (\p -> p {children=n:(children p)}) ps
@@ -51,11 +54,11 @@ submit state name node = do
 
   -- notify universe of incoming node
   notified <- notifyIncoming (universe state) n (parents node) (children node)
-  
-  -- insert new node into notified universe
-  let updatedUniverse = Map.insert n node notified
 
   let newNode = node {identity=n} -- new node
+  -- insert new node into notified universe
+  let updatedUniverse = Map.insert n newNode notified
+  
   let namesTable = Map.insert name n (names state) -- updated names lookup table
   let idsTable = Map.insert n name (ids state) -- updated ids lookup table
 
@@ -78,15 +81,24 @@ getNode state name = do
   Map.lookup nodeId (universe state)
 
 -- | Add a bernoulli element to a universe
-addBernoulli :: State -> String -> Double -> Maybe (Node, State)
-addBernoulli state name p = submit state name (createDetachedNode $ Unobserved $ Bernoulli p)
+addBernoulli :: State -> String -> Double -> Maybe Bool ->  Maybe (Node, State)
+addBernoulli state name p val = submit state name (createDetachedNode $ payload)
+  where
+    payload = case val of
+      Just v -> Observed (Bernoulli p) v
+      Nothing -> Unobserved (Bernoulli p)
+                                                                          
 
 -- | Add a CPD1 element to a universe
-addCPD1 :: State -> String -> String -> Double -> Double -> Maybe (Node, State)
-addCPD1 state name parent ift iff = do --submit state name node where
+addCPD1 :: State -> String -> String -> Double -> Double -> Maybe Bool -> Maybe (Node, State)
+addCPD1 state name parent ift iff val = do --submit state name node where
   -- construct CPD1 node
   parentId <- getId state parent
-  let node = createNode 0 [parentId] [] $ Unobserved $ CPD1 ift iff
+  let payload = case val of
+        Just v -> Observed (CPD1 ift iff) v
+        Nothing -> Unobserved (CPD1 ift iff)
+    
+  let node = createNode 0 [parentId] [] $ payload
 
   -- add node to state
   submit state name node
