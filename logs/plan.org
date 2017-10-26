@@ -51,7 +51,6 @@
     (for instance, =data Bernoulli a = Bernoulli Double a a). Such
     a datatype is made an instance of the relevant typeclasses.
       
-
 *** TODO Representing Atomic Elements
     There is an Element type for representing the structure which correspond
     to Figaro elements. Atomic elements have two attributes---one for the distribution
@@ -85,7 +84,6 @@
       #+END_CENTER
 
       
-
 *** TODO Simple Inference
     The =probability= function contains simple inference logic. Since
     compound elements are allowed, every element can be considered part of
