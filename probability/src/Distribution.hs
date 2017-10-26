@@ -7,17 +7,35 @@ import qualified Statistics.Distribution as DistLib
 import qualified Statistics.Distribution.Normal as NormalLib
 import GHC.Float
 
+
+
+class Eq a => DiscreteDomain a where
+  toInt :: a -> Int
+  fromInt :: Int -> a
+
+
+instance DiscreteDomain Bool where
+  toInt True = 1
+  toInt False = 0
+
+  fromInt 0 = False
+  fromInt _ = True
+
+instance DiscreteDomain Int where
+  toInt = id
+  fromInt = id
+
 -- | Class to represent discrete distributions.  Each discrete
 -- distribution is defined by its probability mass function
 -- (pmf). Additionally, the domains of discrete distributions can be
 -- enumerated.
-class Discrete a where
+class DiscreteDist a where
   -- Probability Mass Function (PMF)
-  pmf :: Eq b => a b -> b -> Double
+  pmf :: (DiscreteDomain b)  => a b -> b -> Double
   -- Enumerate a discrete domain
-  domain :: (Eq b) => a b -> [b]
+  domain :: (DiscreteDomain b) => a b -> [b]
   -- Function to test membership of a value in a discrete domain
-  inDomain :: (Eq b) => a b -> b ->  Bool
+  inDomain :: (DiscreteDomain b) => a b -> b ->  Bool
 
 -- | Class to represent continuous distributions. A continuous
 -- distribution is defined by its probability density function (pdf),
@@ -31,7 +49,7 @@ class Continuous a where
 -- Bernoulli Distribution
 data Bernoulli a = Bernoulli Double a a
 
-instance Discrete Bernoulli where
+instance DiscreteDist Bernoulli where
   pmf (Bernoulli p s f) x = if (x == s) then p else (if (x == f) then 1 - p else 0.0)
   domain (Bernoulli _ s f)  = [s, f]
   inDomain (Bernoulli _ s f) val = val == s || val == f
@@ -39,7 +57,7 @@ instance Discrete Bernoulli where
 -- Select Distribution
 data Select a = Select [(a, Double)]
 
-instance Discrete Select where
+instance DiscreteDist Select where
   pmf (Select pairs) x = case ListLib.lookup x pairs of
                            (Just p) -> p
                            Nothing -> 0                           
@@ -49,7 +67,7 @@ instance Discrete Select where
 -- Constant Distribution
 data Constant a = Constant a
 
-instance Discrete Constant where
+instance DiscreteDist Constant where
   pmf (Constant c) x = if (c == x) then 1.0 else 0.0
   domain (Constant c) = [c]
   inDomain (Constant c) val = val == c
