@@ -1,15 +1,19 @@
+{-# LANGUAGE ExistentialQuantification #-}
 module Node where
 
 import Prelude
 import qualified Data.Map.Strict as Map
+--import Distribution
 
-data Dist = Bernoulli Double | CPD1 Double Double | CPD2 Double Double Double Double deriving (Show)
+data Dist = Bernoulli Double | CPD1 Double Double
+  | CPD2 Double Double Double Double deriving (Show)
+
 data Payload = Observed Dist Bool | Unobserved Dist deriving (Show)
 
 data Node = Node 
   {
     identity :: Int,
-    parents :: [Int],
+    parents :: [Int], -- order matters
     children :: [Int],
     payload :: Payload
   } deriving (Show)

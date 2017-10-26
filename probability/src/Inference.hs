@@ -53,7 +53,7 @@ cprob (CPD1 rv ((x, var):xs)) val = cprob (element var) val + cprob (CPD1 rv xs)
 -- -- getParentDomain :: RV a -> [ListVal]
 -- -- getParentDomain rv = cs where
 -- --   parents = getParentsList rv
--- --   parentDomains = [ListVal $ rvValuesVal p | (Var p) <- parents]
+                                    -- --   parentDomains = [ListVal $ rvValuesVal p | (Var p) <- parents]
 -- --   cs = combs parentDomains
   
 -- -- getParentDomain :: RV a -> [[Value]]
