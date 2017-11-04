@@ -7,12 +7,15 @@ import qualified Statistics.Distribution as DistLib
 import qualified Statistics.Distribution.Normal as NormalLib
 import GHC.Float
 
+class Domain a where
+  member :: a -> Bool
 
-
-class Eq a => DiscreteDomain a where
+class (Domain a, Eq a) => DiscreteDomain a where
   toInt :: a -> Int
   fromInt :: Int -> a
 
+instance Domain Bool where
+  member x = x == True || x == False
 
 instance DiscreteDomain Bool where
   toInt True = 1
@@ -20,6 +23,13 @@ instance DiscreteDomain Bool where
 
   fromInt 0 = False
   fromInt _ = True
+
+instance Domain Int where
+  -- anything of type int is an int
+  -- must be further restricted for
+  -- a domain that is a subset of
+  -- the set of integers.
+  member x = True
 
 instance DiscreteDomain Int where
   toInt = id
