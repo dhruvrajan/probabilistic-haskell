@@ -1,0 +1,41 @@
+* Representing Distributions
+  - A /distribution/ is an assignment of values to each element in a
+    domain.
+  - A /domain/ can be either /discrete/ or /continuous/
+    - A /discrete/ domain consists of an enumerable set of values
+     
+    - A /continuous/ domain is not enumerable, but must be
+      mathematically continuous
+      - Still unclear if this will be assumed or indicated somehow;
+        perhaps it could be indicated by something like the mean value
+        theorem.
+  - A /discrete/ distribution is defined by
+    - a "Probability Mass Function (pmf)" over a discrete domain
+  - A /continuous/ distribution is defined by
+    - a "Probability Density Function (pdf)" over a continuous domain
+    - a "Cumulative Density Function (cdf)" over a continuous domain
+  - Each Distribution is represented by some parameterized datatype,
+    and made an instance of the relevant typeclasses
+* Representing Random Variables
+  - A Random Variable has multiple functions.
+    1. When unobserved, its value follows some distribution.
+    2. When observed, its value is fixed.
+    3. Random Variables can depend on the values of others; thus, they
+       have parents and children
+* The Main Issue:
+  - Currently the network can only be defined for RVs over a single
+    type of distribution (Boolean). The issues that arbitrary types of
+    RVs would introduce:
+    - A single data structure, generated at runtime, to represent an
+      assignment of values to multiple, differently typed random
+      variables becomes strange and complex
+    - Representing the network becomes complex as well -- Can't have
+      arbitrarily typed nodes
+* Proposed solution
+  - Focus on discrete distributions.
+  - Represent domains explicitly, as a typeclass
+    - When a type is made an instance of a Domain typeclass,
+      a mapping must be defined between values of that type
+      and the Integers.
+    - After this, never use the values explicitly; use the toInt and
+      fromInt functions to retreive the properly typed values.
